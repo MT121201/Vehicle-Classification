@@ -128,6 +128,3 @@ if __name__ == '__main__':
         print('Detect CVAT image path, now correct the query path in pseudo_annotation.txt')
     write_pseudo_annotation(predict, ann_path, CVAT_image_path)
     print('Done, check pseudo_annotation.txt')
-    
-
-    
