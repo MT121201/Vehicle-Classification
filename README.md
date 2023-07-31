@@ -13,7 +13,8 @@ conda install pytorch==1.13.0 torchvision==0.14.0 torchaudio==0.13.0 pytorch-cud
 pip install scipy tqdm future tensorboard
 pip install timm==0.4.12 adabelief_pytorch motmetrics imagecorruptions
 pip install git+https://github.com/jonbarron/robust_loss_pytorch
-pip install --no-cache-dir -U albumentations --no-binary qudida,albumentations
+pip install --no-cache-dir -U albumentations --no-binary qudida,albumentations click
+pip install git+https://github.com/thuyngch/cvut
 
 # install mmengine, mmcv, mmpretrain
 pip install -U openmim
@@ -56,4 +57,11 @@ SHOWDIR=visualize
 
 # run test
 mim test mmpretrain $CFG --checkpoint $CHECKPOINT --work-dir $WORKDIR --show-dir $SHOWDIR
+```
+
+### Visualize trained dataset
+```bash
+python tools/visualizer/test_dataset.py \
+    --config_file configs/tnivc/mobilenet-v3-small_8xb128_vc.py \
+    --save_img_dir ./cache/debugdata
 ```
