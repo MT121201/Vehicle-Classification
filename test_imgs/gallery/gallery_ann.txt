@@ -1,0 +1,4 @@
+/home/tni/Workspace/triet/Vehicle-Classification/test_imgs/gallery/20230712101736929_113_0.jpg 0
+/home/tni/Workspace/triet/Vehicle-Classification/test_imgs/gallery/20230712101736929_113_1.jpg 1
+/home/tni/Workspace/triet/Vehicle-Classification/test_imgs/gallery/20230712101736929_113_2.jpg 1
+/home/tni/Workspace/triet/Vehicle-Classification/test_imgs/gallery/20230714082245226_112_7.jpg 0
