@@ -46,81 +46,65 @@ train_pipeline = [
         fill_std=bgr_std),
     dict(type='PackInputs'),
 ]
-### To use dataset wrapper, have to change in configs/mmpretrain/_base_/datasets/imagenet_bs128_mbv3.py
-### Line 44: dataset=dict(..) <- in train dataloader,we change this line to:
-### Line 44: dataset=dict(
-###             type =dataset_type,
-###             datasets=dict(...)) ### Notice adjust indent, datasets <- "s"
-### Eg: 
-# train_dataloader = dict(
-#     batch_size=128,
-#     num_workers=5,
-#     dataset=dict(
-#         type=dataset_type,
-#         datasets=dict(type=dataset_type,
-#             data_root='data/imagenet',
-#             pipeline=train_pipeline)),
-#     sampler=dict(type='DefaultSampler', shuffle=True),
-# )
-### Without change, the config will load from base and ignore the dataset wrapper -> lead to error
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='ResizeEdge', scale=256, edge='short', backend='pillow'),
+    dict(type='CenterCrop', crop_size=224),
+    dict(type='PackInputs'),
+]
+dataset_to_repeat=dict(
+    type='CustomDataset',
+    data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
+    metainfo=metainfo,
+    ann_file='annotations/annotations.txt',
+    data_prefix='',
+    with_label=True,
+    pipeline=train_pipeline
+    )
 
-# Dataset 
-### Use CustomDataset type dont have split, instead use _delete_=True will lead to unknow error of dataloaders,
-### please comment the "split" line in Train and Val dataloader in configs/mmpretrain/_base_/datasets/imagenet_bs128_mbv3.py
+dataset_B=dict(
+    type='CustomDataset',
+    data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
+    # _delete_=True,
+    metainfo=metainfo,
+    ann_file='annotations/annotations.txt',
+    data_prefix='',
+    with_label=True,
+    pipeline=train_pipeline
+    )
+
+
 dataset_A = dict(
-    type= 'RepeatDataset',
-    times = 5,
-    dataset=dict(
-        type='CustomDataset',
-        data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
-            metainfo=metainfo,
-            ann_file='annotations/annotations.txt',
-            data_prefix='',
-            with_label=True,
-            pipeline=train_pipeline
-        )
-)
+    type='RepeatDataset',
+    times=5,
+    dataset=dataset_to_repeat)
 
-dataset_B = dict(
-    type= 'RepeatDataset',
-    times = 2,
-    dataset=dict(
-        type='CustomDataset',
-        data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
-            # _delete_=True,
-            metainfo=metainfo,
-            ann_file='annotations/annotations.txt',
-            data_prefix='',
-            with_label=True,
-            pipeline=train_pipeline
-        )
-)
-
+dataset_train = dict(
+    type='ConcatDataset',
+    _delete_=True,
+    datasets=[dataset_A, dataset_B])
 
 # Apply concat dataset to train dataloader
 train_dataloader = dict(
     batch_size=32,
-    dataset=dict(
-    type='ConcatDataset',
-    datasets=[dataset_A, dataset_B])
+    dataset=dataset_train
 )
 val_dataloader = dict(
     batch_size=32,
     dataset=dict(
         type='CustomDataset',
         data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
-        # _delete_=True,
+        _delete_=True,
         metainfo=metainfo,
         ann_file='annotations/annotations.txt',
-        data_prefix=''
+        data_prefix='',
+        pipeline=test_pipeline
     )
 )
 test_dataloader = val_dataloader
 
 train_cfg = dict(by_epoch=True, max_epochs=200, val_interval=10)
 
-### learning rate default was 0.064, and don't see it scale with batch size, I change it to 1e-3
-### With some model, when it scale it will print in log 
 optim_wrapper = dict(
     optimizer=dict(
         type='RMSprop',
