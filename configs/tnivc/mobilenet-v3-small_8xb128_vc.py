@@ -30,12 +30,12 @@ bgr_std = data_preprocessor['std'][::-1]
 
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='RandomResizedCrop', scale=224, backend='pillow'),
+    dict(type='ColorJitter', brightness=0.4, contrast=0.4, saturation=0.4, hue=0.4),
+    dict(type='GaussianBlur', prob=0.5, radius=2 ),
+    dict(type ='Lighting', eigval=[0.2175, 0.0188, 0.0045], eigvec=[[-0.5675, 0.7192, 0.4009], [-0.5808, -0.0045, -0.8140], [-0.5836, -0.6948, 0.4203]],),
+    dict(type='Rotate', angle= 20 ,prob=0.5),
     dict(type='RandomFlip', prob=0.5, direction='horizontal'),
-    dict(
-        type='AutoAugment',
-        policies='imagenet',
-        hparams=dict(pad_val=[round(x) for x in bgr_mean])),
+    dict(type='RandomGrayscale', prob=0.2, keep_channels=True),
     dict(
         type='RandomErasing',
         erase_prob=0.2,
@@ -44,6 +44,8 @@ train_pipeline = [
         max_area_ratio=1 / 3,
         fill_color=bgr_mean,
         fill_std=bgr_std),
+    dict(type='RandomResize', scale=(224,224), ratio_range=(0.8,1.2)),
+    dict(type='RandomCrop', crop_size=224, padding=(3,3,3,3), pad_if_needed=True),
     dict(type='PackInputs'),
 ]
 test_pipeline = [
@@ -52,6 +54,7 @@ test_pipeline = [
     dict(type='CenterCrop', crop_size=224),
     dict(type='PackInputs'),
 ]
+# This dataset will repeat
 dataset_to_repeat=dict(
     type='CustomDataset',
     data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
@@ -62,6 +65,7 @@ dataset_to_repeat=dict(
     pipeline=train_pipeline
     )
 
+# This dataset will keep remain
 dataset_B=dict(
     type='CustomDataset',
     data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
@@ -73,7 +77,7 @@ dataset_B=dict(
     pipeline=train_pipeline
     )
 
-
+# Repeat then concat dataset
 dataset_A = dict(
     type='RepeatDataset',
     times=5,
@@ -89,6 +93,8 @@ train_dataloader = dict(
     batch_size=32,
     dataset=dataset_train
 )
+
+# Val dataloaders use the normal dataset
 val_dataloader = dict(
     batch_size=32,
     dataset=dict(
