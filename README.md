@@ -65,3 +65,31 @@ python tools/visualizer/test_dataset.py \
     --config_file configs/tnivc/mobilenet-v3-small_8xb128_vc.py \
     --save_img_dir ./cache/debugdata
 ```
+
+### Pseudo annotation
+```
+ Gallery images folder structure:
+    path
+    |--- class_1
+    |    |--- img_1
+    |    |--- img_2
+    |    |--- ...
+    |--- class_2
+    |---...
+
+Query images folder structure:
+    path
+    |--- img_1
+    |--- img_2
+    |--- ...
+
+synsets.txt file with classes_name in each line
+|-class 1
+|-class 2
+|...
+
+Simian:
+python retrieval/pseudo_ann/simsiam_pseudo.py
+ONNX:
+python retrieval/pseudo_ann/retrieval_onnx.py
+```
