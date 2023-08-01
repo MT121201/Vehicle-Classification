@@ -40,10 +40,6 @@ def get_class_name(synsets_path):
             class_name.append(line.strip())
     return class_name
 
-# Load the ONNX model
-onnx_model_path = "outputs/onnx_model/veriwild_vc.onnx"
-sess = ort.InferenceSession(onnx_model_path)
-
 # Preprocessing for images
 preprocess = transforms.Compose([
     transforms.Resize((256, 256)),
@@ -141,6 +137,10 @@ def write_pseudo_annotation(pseudo_labels, class_names, CVAT_image_path=None):
             f.write('\n')
 
 def main():
+    # Load the ONNX model
+    onnx_model_path = "outputs/onnx_model/veriwild_vc.onnx"
+    sess = ort.InferenceSession(onnx_model_path)
+
     # Define the path to query and gallery images
     # Query images folder structure:
     # path
