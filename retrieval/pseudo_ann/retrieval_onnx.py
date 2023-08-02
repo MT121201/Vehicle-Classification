@@ -48,7 +48,7 @@ preprocess = transforms.Compose([
 ])
 
 # Function to extract features from an image
-def extract_features(image_path):
+def extract_features(image_path, sess):
     image = Image.open(image_path).convert("RGB")
     image_tensor = preprocess(image).unsqueeze(0).numpy()
     input_name = sess.get_inputs()[0].name
@@ -61,20 +61,20 @@ def cosine_similarity(query_features, gallery_features):
         np.linalg.norm(query_features) * np.linalg.norm(gallery_features)
     )
 
-def generate_pseudo_labels(query_images_folder, gallery_images_list):
+def generate_pseudo_labels(query_images_folder, gallery_images_list, sess):
     gallery_features_dict = {}
     query_labels = {}
 
     # Extract gallery features
     for image_path in gallery_images_list:
-        gallery_features = extract_features(image_path)
+        gallery_features = extract_features(image_path, sess)
         gallery_features_dict[image_path] = gallery_features
     
     # Extract query features and compute similarity
     for filename in os.listdir(query_images_folder):
         if filename.endswith('.jpg'):
             query_image_path = os.path.join(query_images_folder, filename)
-            query_features = extract_features(query_image_path)
+            query_features = extract_features(query_image_path, sess)
 
             best_match = None
             best_similarity = -1
@@ -123,7 +123,7 @@ def write_pseudo_annotation(pseudo_labels, class_names, CVAT_image_path=None):
     Return:
         None, but write the onnx_pseudo_annotation.txt file
     """
-    with open('onnx_pseudo_annotation.txt', 'w') as f:
+    with open('v2_ann.txt', 'w') as f:
         for query in pseudo_labels:
             query_path = query
             gallery_path = pseudo_labels[query]
@@ -138,7 +138,7 @@ def write_pseudo_annotation(pseudo_labels, class_names, CVAT_image_path=None):
 
 def main():
     # Load the ONNX model
-    onnx_model_path = "outputs/onnx_model/veriwild_vc.onnx"
+    onnx_model_path = "onnx_model/pseudo_annotation.onnx"
     sess = ort.InferenceSession(onnx_model_path)
 
     # Define the path to query and gallery images
@@ -147,7 +147,8 @@ def main():
     # |--- img_1
     # |--- img_2
     # |--- ...
-    query_images_folder = "/data/its/vehicle_cls/vp3_202307_crop"
+    query_images_folder = "/data/its/vehicle_cls/202307_crop_ttp/images"
+    
     # Gallery images folder structure:
     # path
     # |--- class_1
@@ -157,6 +158,7 @@ def main():
     # |--- class_2
     # |---...
     gallery_images_folder = "/home/tni/Workspace/triet/Vehicle-Classification/retrieval/gallery"
+    
     # Path to synsets.txt file; the txt file with class name in each line:
     # class1
     # class2
@@ -166,12 +168,12 @@ def main():
     # Correct path in CVAT, if None, return the real path
     # Sometime the path in repo is not same as path in CVAT, so we need to correct the path
     # SET NONE IF NOT USE
-    CVAT_image_path = 'its/vehicle_cls/vp3_202307_crop/' ## set None if not use
+    CVAT_image_path = 'its/vehicle_cls/202307_crop_ttp/images' ## set None if not use
 
     gallery_images_list = load_img_from_dir(gallery_images_folder)
     class_names = get_class_name(class_synsets)
 
-    pseudo_labels = generate_pseudo_labels(query_images_folder, gallery_images_list)
+    pseudo_labels = generate_pseudo_labels(query_images_folder, gallery_images_list, sess)
     
     # Write pseudo annotation, if CVAT_image_path != None, correct the path in pseudo_annotation.txt
     if CVAT_image_path != None:
