@@ -55,8 +55,8 @@ test_pipeline = [
     dict(type='PackInputs'),
 ]
 # This dataset will repeat
-dataset_to_repeat=dict(
-    type='CustomDataset',
+dataset_A=dict(
+    type='ImageNet',
     data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
     metainfo=metainfo,
     ann_file='annotations/annotations.txt',
@@ -67,21 +67,21 @@ dataset_to_repeat=dict(
 
 # This dataset will keep remain
 dataset_B=dict(
-    type='CustomDataset',
-    data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
-    # _delete_=True,
+    type='ImageNet',
+    data_root='/data/its/vehicle_cls/202307_crop_ttp/',  
     metainfo=metainfo,
     ann_file='annotations/annotations.txt',
-    data_prefix='',
+    split='train',
+    data_prefix='images/',
     with_label=True,
     pipeline=train_pipeline
     )
 
 # Repeat then concat dataset
-dataset_A = dict(
-    type='RepeatDataset',
-    times=5,
-    dataset=dataset_to_repeat)
+# dataset_A = dict(
+#     type='RepeatDataset',
+#     times=5,
+#     dataset=dataset_to_repeat)
 
 dataset_train = dict(
     type='ConcatDataset',
@@ -90,20 +90,19 @@ dataset_train = dict(
 
 # Apply concat dataset to train dataloader
 train_dataloader = dict(
-    batch_size=32,
+    batch_size=128,
     dataset=dataset_train
 )
 
 # Val dataloaders use the normal dataset
 val_dataloader = dict(
-    batch_size=32,
+    batch_size=128,
     dataset=dict(
-        type='CustomDataset',
-        data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
-        _delete_=True,
+        type='ImageNet',
+        data_root='/data/its/vehicle_cls/202307_crop_ttp/',  
         metainfo=metainfo,
         ann_file='annotations/annotations.txt',
-        data_prefix='',
+        data_prefix='images/',
         pipeline=test_pipeline
     )
 )
