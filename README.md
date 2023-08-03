@@ -25,6 +25,42 @@ mim install "mmpretrain==1.0.0"
 # install this repo
 python setup.py develop
 ```
+- Install Inference Engines
+- TensorRT
+```bash
+# download the TensorRT tar file from NVIDIA here use 8.6.1.6 cuda 11.x to deploy dir
+wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-11.8.tar.gz
+# extract it to the current directory
+tar -zxvf TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-11.8.tar.gz
+# install TensorRT with cp3x
+pip install TensorRT-8.6.1.6/python/tensorrt-8.6.1-cp39-none-linux_x86_64.whl
+# Change path for install PyCuda
+export CPATH=$CPATH:/usr/local/cuda-11.7/targets/x86_64-linux/include
+export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/cuda-11.7/targets/x86_64-linux/lib
+pip install pycuda
+#
+# Download CuNN from NVIDIA and move download file to current directory before next line
+#
+tar xf cudnn-linux-x86_64-8.9.0.131_cuda11-archive.tar.xz
+export CUDNN_DIR=$(pwd)/cuda
+export LD_LIBRARY_PATH=$CUDNN_DIR/lib64:$LD_LIBRARY_PATH
+```
+- ONNXRuntime (GPU)
+```bash
+# you can install one to install according whether you need gpu inference
+# onnxruntime
+wget https://github.com/microsoft/onnxruntime/releases/download/v1.15.0/onnxruntime-linux-x64-1.15.0.tgz
+tar -zxvf onnxruntime-linux-x64-1.15.0.tgz
+export ONNXRUNTIME_DIR=$(pwd)/onnxruntime-linux-x64-1.15.0
+export LD_LIBRARY_PATH=$ONNXRUNTIME_DIR/lib:$LD_LIBRARY_PATH
+
+# onnxruntime-gpu
+pip install onnxruntime-gpu==1.15.0
+wget https://github.com/microsoft/onnxruntime/releases/download/v1.15.0/onnxruntime-linux-x64-gpu-1.15.0.tgz
+tar -zxvf onnxruntime-linux-x64-gpu-1.15.0.tgz
+export ONNXRUNTIME_DIR=$(pwd)/onnxruntime-linux-x64-gpu-1.15.0
+export LD_LIBRARY_PATH=$ONNXRUNTIME_DIR/lib:$LD_LIBRARY_PATH
+```
 
 # Utilization
 ### Train
