@@ -26,7 +26,7 @@ mim install "mmpretrain==1.0.0"
 python setup.py develop
 ```
 - Install Inference Engines
-- TensorRT
+    - TensorRT
 ```bash
 # download the TensorRT tar file from NVIDIA here use 8.6.1.6 cuda 11.x to deploy dir
 wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-11.8.tar.gz
@@ -45,7 +45,7 @@ tar xf cudnn-linux-x86_64-8.9.0.131_cuda11-archive.tar.xz
 export CUDNN_DIR=$(pwd)/cuda
 export LD_LIBRARY_PATH=$CUDNN_DIR/lib64:$LD_LIBRARY_PATH
 ```
-- ONNXRuntime (GPU)
+    - ONNXRuntime (GPU)
 ```bash
 # you can install one to install according whether you need gpu inference
 # onnxruntime
