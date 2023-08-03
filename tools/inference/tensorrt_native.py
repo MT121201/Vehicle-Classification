@@ -46,7 +46,6 @@ def postprocess(output):
     return np.argmax(output)
 
 def main(engine_file, image_path, class_names):
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     engine = load_engine(engine_file)
     inputs, outputs, bindings, stream = allocate_buffers(engine)
     context = engine.create_execution_context()
