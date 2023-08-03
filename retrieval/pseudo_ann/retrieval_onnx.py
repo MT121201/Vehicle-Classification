@@ -3,7 +3,7 @@
 # python retrieval/pseudo_ann/retrieval_onnx.py \
 # --query /data/its/vehicle_cls/vp3_202307_crop \
 # --gallery /data/its/vehicle_cls/image_retrieval \
-# --classes /data/its/vehicle_cls/image_retrieval/synsets.txt \
+# --synsets /data/its/vehicle_cls/image_retrieval/synsets.txt \
 # --CVAT /its/vehicle_cls/202307_crop_ttp/images \
 # --out ./cache/annotation.txt
 ##############################################################################################################
@@ -142,6 +142,7 @@ def write_pseudo_annotation(out_path, pseudo_labels, class_names, CVAT_image_pat
         None, but write the onnx_pseudo_annotation.txt file
     """
     with open(out_path, 'w') as f:
+        print('Start write pseudo annotation to :', out_path)
         for query in pseudo_labels:
             query_path = query
             gallery_path = pseudo_labels[query]
@@ -157,7 +158,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description='Generate pseudo annotation for query images')
     parser.add_argument('--query', type=str, default=None, help='Path to query images folder')
     parser.add_argument('--gallery', type=str, default='/data/its/vehicle_cls/image_retrieval', help='Path to gallery images folder')
-    parser.add_argument('--classes', type=str, default='/data/its/vehicle_cls/image_retrieval/synsets.txt', help='Path to synsets.txt file')
+    parser.add_argument('--synsets', type=str, default='/data/its/vehicle_cls/image_retrieval/synsets.txt', help='Path to synsets.txt file')
     parser.add_argument('--CVAT', type=str, default=None, help='Path to image in CVAT, if not None, correct the path in pseudo_annotation.txt')
     parser.add_argument('--out', type=str, default='./cache/annotation.txt', help='Path to output pseudo annotation file')
     args = parser.parse_args()
@@ -172,7 +173,7 @@ def main():
     
     gallery_images_folder = args.gallery
     
-    class_synsets = args.classes
+    class_synsets = args.synsets
     
     # Correct path in CVAT, if None, return the real path
     # Sometime the path in repo is not same as path in CVAT, so we need to correct the path

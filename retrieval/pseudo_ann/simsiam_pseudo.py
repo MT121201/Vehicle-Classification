@@ -1,3 +1,12 @@
+##############################################################################################################
+# Usage:
+# python retrieval/pseudo_ann/simsiam_pseudo.py \
+# --query /data/its/vehicle_cls/vp3_202307_crop \
+# --gallery /data/its/vehicle_cls/image_retrieval \
+# --synsets /data/its/vehicle_cls/image_retrieval/synsets.txt \
+# --CVAT /its/vehicle_cls/202307_crop_ttp/images \
+# --out ./cache/si.txt
+##############################################################################################################
 import os
 import torch
 from torchvision import transforms
@@ -5,6 +14,7 @@ import torch.nn.functional as F
 import numpy as np
 from PIL import Image
 from mmpretrain import get_model
+import argparse
 
 def load_img_from_dir(root_gallery):
     """Load image from directory, directory structure:
@@ -22,11 +32,13 @@ def load_img_from_dir(root_gallery):
         Dict of class index and image path
     """
     image_list = []
+    print('Load gallery from directory: {}'.format(root_gallery))
     for class_idx, class_name in enumerate(os.listdir(root_gallery)):
         class_path = os.path.join(root_gallery, class_name)
-        for img_name in os.listdir(class_path):
-            img_path = os.path.join(class_path, img_name)
-            image_list.append(img_path)
+        if os.path.isdir(class_path):
+            for img_name in os.listdir(class_path):
+                img_path = os.path.join(class_path, img_name)
+                image_list.append(img_path)
     return image_list
 
 def get_list_query_image_path(query_path):
@@ -78,13 +90,19 @@ def cosine_similarity(feature_map1, feature_map2):
 
 def generate_pseudo_labels(query_images_list, gallery_images_list, model):
     gallery_features_dict = {}
+    print('Start generate pseudo annotation for query images')
     for gallery_path in gallery_images_list:
         gallery_image = load_and_preprocess_image(gallery_path)
         gallery_feature_map = extract_features(model, gallery_image)
         gallery_features_dict[gallery_path] = gallery_feature_map
 
     query_labels = {}
+    i =0
     for query_path in query_images_list:
+        i +=1
+        if i % 100 == 0:
+                # i/total
+                print('Process {} / {}'.format(i, len(os.listdir(query_images_list))))
         query_image = load_and_preprocess_image(query_path)
         query_feature_map = extract_features(model, query_image)
         
@@ -96,6 +114,7 @@ def generate_pseudo_labels(query_images_list, gallery_images_list, model):
                 best_similarity = similarity
                 best_match = gallery_filename
         query_labels[query_path] = os.path.splitext(best_match)[0]
+    print('Done generate pseudo annotation for query images')
     return query_labels
 
 def get_predict_class(path_of_highest_similar_image, class_names):
@@ -124,7 +143,7 @@ def correct_image_path(real_path, query_img_path):
     correct_path = os.path.join(real_path, img_name)
     return correct_path
 
-def write_pseudo_annotation(pseudo_labels, class_names, CVAT_image_path=None):
+def write_pseudo_annotation(out_path, pseudo_labels, class_names, CVAT_image_path=None):
     """Write pseudo annotation to file in ImageNet format
     Args:
         pseudo_labels: Dict, Image: query image name, Pseudo Label: most similar image name
@@ -133,7 +152,8 @@ def write_pseudo_annotation(pseudo_labels, class_names, CVAT_image_path=None):
     Return:
         None, but write the pseudo_annotation.txt file
     """
-    with open('pseudo_annotation.txt', 'w') as f:
+    with open(out_path, 'w') as f:
+        print('Start write pseudo annotation to :', out_path)
         for query in pseudo_labels:
             query_path = query
             gallery_path = pseudo_labels[query]
@@ -145,34 +165,29 @@ def write_pseudo_annotation(pseudo_labels, class_names, CVAT_image_path=None):
             annotation = str(query_path) + ' ' + str(class_idx)
             f.write(annotation)
             f.write('\n')
+
+def arg_parse():
+    parser = argparse.ArgumentParser(description='Generate pseudo annotation for query images')
+    parser.add_argument('--query', type=str, default=None, help='Path to query images folder')
+    parser.add_argument('--gallery', type=str, default='/data/its/vehicle_cls/image_retrieval', help='Path to gallery images folder')
+    parser.add_argument('--synsets', type=str, default='/data/its/vehicle_cls/image_retrieval/synsets.txt', help='Path to synsets.txt file')
+    parser.add_argument('--CVAT', type=str, default=None, help='Path to image in CVAT, if not None, correct the path in pseudo_annotation.txt')
+    parser.add_argument('--out', type=str, default='./cache/annotation.txt', help='Path to output pseudo annotation file')
+    args = parser.parse_args()
+    return args
+
 def main():
-    # Define the path to query and gallery images
-    # Query images folder structure:
-    # path
-    # |--- img_1
-    # |--- img_2
-    # |--- ...
-    query_images_folder = "/data/its/vehicle_cls/vp3_202307_crop"
-    # Gallery images folder structure:
-    # path
-    # |--- class_1
-    # |    |--- img_1
-    # |    |--- img_2
-    # |    |--- ...
-    # |--- class_2
-    # |---...
-    gallery_images_folder = "retrieval/gallery"
-    # Path to synsets.txt file; the txt file with class name in each line:
-    # class1
-    # class2
-    # ...
-    class_synsets = '/home/tni/Workspace/triet/Vehicle-Classification/retrieval/pseudo_ann/synsets.txt'
+    args = arg_parse()
+    query_images_folder = args.query
+    gallery_images_folder = args.gallery
+    class_synsets = args.synsets
 
     # Correct path in CVAT, if None, return the real path
     # Sometime the path in repo is not same as path in CVAT, so we need to correct the path
     # SET NONE IF NOT USE
-    CVAT_image_path = 'its/vehicle_cls/vp3_202307_crop/' 
+    CVAT_image_path = args.CVAT
 
+    out_path = args.out
     # Load the pre-trained model and move it to CUDA
     if torch.cuda.is_available():
         device = 'cuda'
@@ -194,7 +209,7 @@ def main():
     # Write pseudo annotation, if CVAT_image_path != None, correct the path in pseudo_annotation.txt
     if CVAT_image_path != None:
         print('Detect CVAT image path, now correct the query path in pseudo_annotation.txt')
-    write_pseudo_annotation(pseudo_labels, class_names, CVAT_image_path)
+    write_pseudo_annotation(out_path, pseudo_labels, class_names, CVAT_image_path)
     print('Done, check pseudo_annotation.txt')
 
 if __name__ == "__main__":
