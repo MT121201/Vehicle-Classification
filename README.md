@@ -25,8 +25,7 @@ mim install "mmpretrain==1.0.0"
 # install this repo
 python setup.py develop
 ```
-- Install Inference Engines
-    - TensorRT
+- TensorRT
 ```bash
 # download the TensorRT tar file from NVIDIA here use 8.6.1.6 cuda 11.x to deploy dir
 wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-11.8.tar.gz
