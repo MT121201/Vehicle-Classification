@@ -135,3 +135,15 @@ Simian:
 python retrieval/pseudo_ann/simsiam_pseudo.py
 -- //same as ONNX//
 ```
+- Split dataset
+```bash
+python tools/check_data/devide_dataset.py \
+        --input orginal annotations file \
+        --thresh split threshold, default is 0.85 \
+        --out output directory, default is in the same directory with input file
+```
+- Calculate loss weight for each class
+```bash
+# Change num_class and path to annotation files in tools/dataset_tools/calculate_loss_weight.py 
+python tools/dataset_tools/calculate_loss_weight.py 
+```
