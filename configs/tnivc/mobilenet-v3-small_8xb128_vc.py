@@ -12,7 +12,10 @@ load_from = "https://download.openmmlab.com/mmclassification/v0/mobilenet_v3/mob
 
 # Change num_classes in model head
 model = dict(
-    head=dict(num_classes=num_classes))
+    head=dict(num_classes=num_classes,
+              loss=dict(type='CrossEntropyLoss', loss_weight=1.0,
+                        #sedan,suv,bantai,bagac,tainho,tailon,container,mayxuc,16cho,29cho,52cho
+                        class_weight=[0.82, 0.34, 1.0, 1.0, 1.0, 0.34, 1.0, 1.0, 1.0, 1.0, 1.0])))
 
 # Change num_classes in train data preprocessor
 data_preprocessor = dict(
@@ -54,69 +57,95 @@ test_pipeline = [
     dict(type='CenterCrop', crop_size=224),
     dict(type='PackInputs'),
 ]
-# This dataset will repeat
-dataset_A=dict(
+
+# Prepare data
+dataset_A_train=dict(
     type='ImageNet',
     data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
     metainfo=metainfo,
-    ann_file='annotations/annotations.txt',
+    ann_file='annotations/train.txt',
     data_prefix='',
     with_label=True,
     pipeline=train_pipeline
     )
 
-# This dataset will keep remain
-dataset_B=dict(
+dataset_B_train=dict(
     type='ImageNet',
     data_root='/data/its/vehicle_cls/202307_crop_ttp/',  
     metainfo=metainfo,
-    ann_file='annotations/annotations.txt',
-    split='train',
+    ann_file='annotations/train.txt',
+    # split='train',
     data_prefix='images/',
     with_label=True,
     pipeline=train_pipeline
     )
 
-# Repeat then concat dataset
-# dataset_A = dict(
-#     type='RepeatDataset',
-#     times=5,
-#     dataset=dataset_to_repeat)
+# Apply class balanced sampler
+dataset_balance_A = dict(
+    type='ClassBalancedDataset',
+    # _delete_=True,
+    dataset=dataset_A_train,
+    oversample_thr=0.1)
 
-dataset_train = dict(
+dataset_balance_B = dict(
+    type='ClassBalancedDataset',
+    # _delete_=True,
+    dataset=dataset_B_train,
+    oversample_thr=0.1)
+
+# Concat dataset
+dataset_concat = dict(
     type='ConcatDataset',
     _delete_=True,
-    datasets=[dataset_A, dataset_B])
+    datasets=[dataset_balance_A, dataset_balance_B])
 
-# Apply concat dataset to train dataloader
 train_dataloader = dict(
     batch_size=128,
-    dataset=dataset_train
+    dataset=dataset_concat
 )
 
-# Val dataloaders use the normal dataset
+# Val dataloaders 
+dataset_A_val=dict(
+    type='ImageNet',
+    data_root='/data/its/vehicle_cls/vp3_202307_crop/',  
+    metainfo=metainfo,
+    ann_file='annotations/val.txt',
+    data_prefix='',
+    with_label=True,
+    pipeline=train_pipeline
+    )
+
+dataset_B_val=dict(
+    type='ImageNet',
+    data_root='/data/its/vehicle_cls/202307_crop_ttp/',  
+    metainfo=metainfo,
+    ann_file='annotations/val.txt',
+    # split='train',
+    data_prefix='images/',
+    with_label=True,
+    pipeline=train_pipeline
+    )
+
+dataset_val = dict(
+    type='ConcatDataset',
+    _delete_=True,
+    datasets=[dataset_A_val, dataset_B_val])
+# Apply concat dataset to val
 val_dataloader = dict(
     batch_size=128,
-    dataset=dict(
-        type='ImageNet',
-        data_root='/data/its/vehicle_cls/202307_crop_ttp/',  
-        metainfo=metainfo,
-        ann_file='annotations/annotations.txt',
-        data_prefix='images/',
-        pipeline=test_pipeline
-    )
+    dataset=dataset_val
 )
+
 test_dataloader = val_dataloader
 
-train_cfg = dict(by_epoch=True, max_epochs=200, val_interval=10)
-
+train_cfg = dict(by_epoch=True, max_epochs=200, val_interval=2)
 optim_wrapper = dict(
     optimizer=dict(
         type='RMSprop',
-        lr=1e-3,
+        lr=1e-1,
         alpha=0.9,
         momentum=0.9,
         eps=0.0316,
         weight_decay=1e-05))
-
 default_hooks = dict(checkpoint=dict(type='CheckpointHook',interval=10, max_keep_ckpts=2, save_best='auto'))
+
