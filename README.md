@@ -45,7 +45,7 @@ tar xf cudnn-linux-x86_64-8.9.0.131_cuda11-archive.tar.xz
 export CUDNN_DIR=$(pwd)/cuda
 export LD_LIBRARY_PATH=$CUDNN_DIR/lib64:$LD_LIBRARY_PATH
 ```
-    - ONNXRuntime (GPU)
+-   ONNXRuntime (GPU)
 ```bash
 # you can install one to install according whether you need gpu inference
 # onnxruntime
