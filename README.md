@@ -88,8 +88,15 @@ synsets.txt file with classes_name in each line
 |-class 2
 |...
 
+ONNX:
+python retrieval/pseudo_ann/retrieval_onnx.py \
+--query: path to Query folder, default = None
+--gallery: path to Gallery folder, default = /data/its/vehicle_cls/image_retrieval
+--synsets: path to synsets.txt file, default = /data/its/vehicle_cls/image_retrieval/synsets.txt
+--CVAT: correct CVAT path, default = None 
+--out: txt output annotation file, default = ./cache/annotation.txt
+
 Simian:
 python retrieval/pseudo_ann/simsiam_pseudo.py
-ONNX:
-python retrieval/pseudo_ann/retrieval_onnx.py
+-- //same as ONNX//
 ```
