@@ -32,9 +32,6 @@ bgr_std = data_preprocessor['std'][::-1]
 
 
 # Move some train_pipeline to here
-bgr_mean = data_preprocessor['mean'][::-1]
-bgr_std = data_preprocessor['std'][::-1]
-
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='ColorJitter', brightness=0.4, contrast=0.4, saturation=0.4, hue=0.4),
