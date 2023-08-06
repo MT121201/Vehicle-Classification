@@ -10,12 +10,14 @@ metainfo = dict(classes=class_name)
 # Load pretrained model from github
 load_from = "https://download.openmmlab.com/mmclassification/v0/repvgg/repvgg-A0_8xb32_in1k_20221213-60ae8e23.pth"
 
+# Change head numclasses and loss weight
 model = dict(
     head=dict(num_classes=num_classes,
               loss=dict(type='CrossEntropyLoss', loss_weight=1.0,
                         #sedan,suv,bantai,bagac,tainho,tailon,container,mayxuc,16cho,29cho,52cho
                         class_weight=[0.82, 0.34, 1.0, 1.0, 1.0, 0.34, 1.0, 1.0, 1.0, 1.0, 1.0])))
 
+# Change num classes in preprocessor
 data_preprocessor = dict(
     num_classes=num_classes,
     # RGB format normalization parameters
@@ -28,14 +30,6 @@ data_preprocessor = dict(
 bgr_mean = data_preprocessor['mean'][::-1]
 bgr_std = data_preprocessor['std'][::-1]
 
-data_preprocessor = dict(
-    num_classes=num_classes,
-    # RGB format normalization parameters
-    mean=[123.675, 116.28, 103.53],
-    std=[58.395, 57.12, 57.375],
-    # convert image from BGR to RGB
-    to_rgb=True,
-)
 
 # Move some train_pipeline to here
 bgr_mean = data_preprocessor['mean'][::-1]
@@ -61,6 +55,7 @@ train_pipeline = [
     dict(type='RandomCrop', crop_size=224, padding=(3,3,3,3), pad_if_needed=True),
     dict(type='PackInputs'),
 ]
+
 test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='ResizeEdge', scale=256, edge='short', backend='pillow'),
@@ -149,7 +144,6 @@ val_dataloader = dict(
 
 val_evaluator = dict(type='Accuracy', topk=(1, 5))
 
-# If you want standard test, please manually configure the test dataset
 test_dataloader = val_dataloader
 test_evaluator = val_evaluator
 
