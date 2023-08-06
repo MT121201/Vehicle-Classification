@@ -112,7 +112,7 @@ dataset_A_val=dict(
     ann_file='annotations/val.txt',
     data_prefix='',
     with_label=True,
-    pipeline=train_pipeline
+    pipeline=test_pipeline
     )
 
 dataset_B_val=dict(
@@ -123,7 +123,7 @@ dataset_B_val=dict(
     # split='train',
     data_prefix='images/',
     with_label=True,
-    pipeline=train_pipeline
+    pipeline=test_pipeline
     )
 
 dataset_val = dict(
@@ -142,7 +142,7 @@ train_cfg = dict(by_epoch=True, max_epochs=200, val_interval=2)
 optim_wrapper = dict(
     optimizer=dict(
         type='RMSprop',
-        lr=1e-1,
+        lr=1e-3,
         alpha=0.9,
         momentum=0.9,
         eps=0.0316,
