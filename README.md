@@ -97,7 +97,7 @@ mim test mmpretrain $CFG --checkpoint $CHECKPOINT --work-dir $WORKDIR --show-dir
 ### Visualize trained dataset
 ```bash
 python tools/visualizer/test_dataset.py \
-    --config_file configs/tnivc/mobilenet-v3-small_8xb128_vc.py \
+    --config_file configs/tnivc/repvgg_vc.py \
     --save_img_dir ./cache/debugdata
 ```
 
