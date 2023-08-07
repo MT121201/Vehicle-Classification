@@ -32,24 +32,24 @@ bgr_std = data_preprocessor['std'][::-1]
 
 
 # Move some train_pipeline to here
+dataset_type = 'ImageNet'
+data_preprocessor = dict(
+    num_classes=1000,
+    mean=[
+        123.675,
+        116.28,
+        103.53,
+    ],
+    std=[
+        58.395,
+        57.12,
+        57.375,
+    ],
+    to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='ColorJitter', brightness=0.4, contrast=0.4, saturation=0.4, hue=0.4),
-    dict(type='GaussianBlur', prob=0.5, radius=2 ),
-    dict(type ='Lighting', eigval=[0.2175, 0.0188, 0.0045], eigvec=[[-0.5675, 0.7192, 0.4009], [-0.5808, -0.0045, -0.8140], [-0.5836, -0.6948, 0.4203]],),
-    dict(type='Rotate', angle= 20 ,prob=0.5),
+    dict(type='RandomResizedCrop', scale=224, backend='pillow'),
     dict(type='RandomFlip', prob=0.5, direction='horizontal'),
-    dict(type='RandomGrayscale', prob=0.2, keep_channels=True),
-    dict(
-        type='RandomErasing',
-        erase_prob=0.2,
-        mode='rand',
-        min_area_ratio=0.02,
-        max_area_ratio=1 / 3,
-        fill_color=bgr_mean,
-        fill_std=bgr_std),
-    dict(type='RandomResize', scale=(224,224), ratio_range=(0.8,1.2)),
-    dict(type='RandomCrop', crop_size=224, padding=(3,3,3,3), pad_if_needed=True),
     dict(type='PackInputs'),
 ]
 
@@ -59,7 +59,6 @@ test_pipeline = [
     dict(type='CenterCrop', crop_size=224),
     dict(type='PackInputs'),
 ]
-
 
 # Train dataloaders
 dataset_A_train=dict(
@@ -72,6 +71,12 @@ dataset_A_train=dict(
     pipeline=train_pipeline
     )
 
+dataset_A_train_repeat = dict(
+    type= 'RepeatDataset',
+    times = 40,
+    dataset=dataset_A_train
+)
+
 dataset_B_train=dict(
     type='ImageNet',
     data_root='/data/its/vehicle_cls/202307_crop_ttp/',  
@@ -83,27 +88,20 @@ dataset_B_train=dict(
     pipeline=train_pipeline
     )
 
-# Apply class balanced sampler
-dataset_balance_A = dict(
-    type='ClassBalancedDataset',
-    # _delete_=True,
-    dataset=dataset_A_train,
-    oversample_thr=0.1)
-
-dataset_balance_B = dict(
-    type='ClassBalancedDataset',
-    # _delete_=True,
-    dataset=dataset_B_train,
-    oversample_thr=0.1)
+dataset_B_train_repeat = dict(
+    type= 'RepeatDataset',
+    times = 20,
+    dataset=dataset_B_train
+)
 
 # Concat dataset
 dataset_concat = dict(
     type='ConcatDataset',
     _delete_=True,
-    datasets=[dataset_balance_A, dataset_balance_B])
+    datasets=[dataset_A_train_repeat, dataset_B_train_repeat])
 
 train_dataloader = dict(
-    batch_size=64,
+    batch_size=256,
     dataset=dataset_concat
 )
 
@@ -146,3 +144,7 @@ test_evaluator = val_evaluator
 
 train_cfg = dict(by_epoch=True, max_epochs=120, val_interval=2)
 default_hooks = dict(checkpoint=dict(type='CheckpointHook',interval=10, max_keep_ckpts=2, save_best='auto'))
+# fp16 = dict(loss_scale='dynamic', velocity_accum_type='half', accum_type='half')
+optim_wrapper = dict(
+    type='AmpOptimWrapper',
+    loss_scale=512.0)
