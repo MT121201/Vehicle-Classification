@@ -30,14 +30,35 @@ data_preprocessor = dict(
 bgr_mean = data_preprocessor['mean'][::-1]
 bgr_std = data_preprocessor['std'][::-1]
 
-
 # Move some train_pipeline to here
 dataset_type = 'ImageNet'
+
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='RandomResizedCrop', scale=224, backend='pillow'),
+    dict(
+        type='RandomResizedCrop',
+        scale=224,
+        backend='pillow',
+        interpolation='bicubic'),
     dict(type='RandomFlip', prob=0.5, direction='horizontal'),
-    dict(type='PackInputs'),
+    dict(
+        type='RandAugment',
+        policies='timm_increasing',
+        num_policies=2,
+        total_level=10,
+        magnitude_level=9,
+        magnitude_std=0.5,
+        hparams=dict(
+            pad_val=[round(x) for x in bgr_mean], interpolation='bicubic')),
+    dict(
+        type='RandomErasing',
+        erase_prob=0.25,
+        mode='rand',
+        min_area_ratio=0.02,
+        max_area_ratio=1 / 3,
+        fill_color=bgr_mean,
+        fill_std=bgr_std),
+    dict(type='PackInputs')
 ]
 
 test_pipeline = [
@@ -50,7 +71,7 @@ test_pipeline = [
 # Train dataloaders
 dataset_A_train = dict(
     type=dataset_type,
-    data_root='/data/its/vehicle_cls/vp3_202307_crop/',
+    data_root='../../data/vehicle_cls/vp3_202307_crop/',
     metainfo=metainfo,
     ann_file='annotations/train.txt',
     data_prefix='',
@@ -66,7 +87,7 @@ dataset_A_train_repeat = dict(
 
 dataset_B_train = dict(
     type=dataset_type,
-    data_root='/data/its/vehicle_cls/202307_crop_ttp/',
+    data_root='../../data/vehicle_cls/202307_crop_ttp/',
     metainfo=metainfo,
     ann_file='annotations/train.txt',
     # split='train',
@@ -95,7 +116,7 @@ train_dataloader = dict(
 # Val dataloaders
 dataset_A_val = dict(
     type=dataset_type,
-    data_root='/data/its/vehicle_cls/vp3_202307_crop/',
+    data_root='../../data/vehicle_cls/vp3_202307_crop/',
     metainfo=metainfo,
     ann_file='annotations/val.txt',
     data_prefix='',
@@ -105,7 +126,7 @@ dataset_A_val = dict(
 
 dataset_B_val = dict(
     type=dataset_type,
-    data_root='/data/its/vehicle_cls/202307_crop_ttp/',
+    data_root='../../data/vehicle_cls/202307_crop_ttp/',
     metainfo=metainfo,
     ann_file='annotations/val.txt',
     # split='train',
