@@ -30,8 +30,7 @@ data_preprocessor = dict(
 bgr_mean = data_preprocessor['mean'][::-1]
 bgr_std = data_preprocessor['std'][::-1]
 
-
-# Move some train_pipeline to here
+# Dataset
 dataset_type = 'ImageNet'
 train_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -58,12 +57,6 @@ dataset_A_train = dict(
     pipeline=train_pipeline
 )
 
-dataset_A_train_repeat = dict(
-    type='RepeatDataset',
-    times=40,
-    dataset=dataset_A_train
-)
-
 dataset_B_train = dict(
     type=dataset_type,
     data_root='/data/its/vehicle_cls/202307_crop_ttp/',
@@ -73,6 +66,13 @@ dataset_B_train = dict(
     data_prefix='images/',
     with_label=True,
     pipeline=train_pipeline
+)
+
+# repeat dataset
+dataset_A_train_repeat = dict(
+    type='RepeatDataset',
+    times=40,
+    dataset=dataset_A_train
 )
 
 dataset_B_train_repeat = dict(
@@ -114,11 +114,12 @@ dataset_B_val = dict(
     pipeline=test_pipeline
 )
 
+# concate val dataset
 dataset_val = dict(
     type='ConcatDataset',
     _delete_=True,
     datasets=[dataset_A_val, dataset_B_val])
-# Apply concat dataset to val
+
 val_dataloader = dict(
     batch_size=64,
     dataset=dataset_val
@@ -132,7 +133,8 @@ test_evaluator = val_evaluator
 train_cfg = dict(by_epoch=True, max_epochs=120, val_interval=2)
 default_hooks = dict(checkpoint=dict(type='CheckpointHook',
                      interval=10, max_keep_ckpts=2, save_best='auto'))
-# fp16 = dict(loss_scale='dynamic', velocity_accum_type='half', accum_type='half')
+
+# fp16 training help you x2 batch size
 optim_wrapper = dict(
     type='AmpOptimWrapper',
     loss_scale=512.0)
