@@ -14,8 +14,21 @@ load_from = "https://download.openmmlab.com/mmclassification/v0/repvgg/repvgg-A0
 model = dict(
     head=dict(num_classes=num_classes,
               loss=dict(type='CrossEntropyLoss', loss_weight=1.0,
-                        # sedan,suv,bantai,bagac,tainho,tailon,container,mayxuc,16cho,29cho,52cho
-                        class_weight=[0.82, 0.34, 1.0, 1.0, 1.0, 0.34, 1.0, 1.0, 1.0, 1.0, 1.0])))
+                                    # sedan,  suv,   bantai, bagac,  tainho, tailon,  container,  cau+xuc=.., 16cho,   29cho,  52cho
+                        class_weight=[0.843,  0.356, 2.559,  26.95,  1.20,   0.2969,  1.32,       2.994,      2.018,  4.98,   1.672])))
+# Balancing Factors:    
+# Class 0: 0.8437970868910095 
+# Class 1: 0.35656172621153165 
+# Class 2: 2.559674961909599 
+# Class 3: 26.951871657754012 
+# Class 4: 1.2057416267942584 
+# Class 5: 0.2969422023213339 
+# Class 6: 1.3204086979303118 
+# Class 7: 2.9946524064171123 
+# Class 8: 2.0184221065278334 
+# Class 9: 4.980237154150197 
+# Class 10: 1.6721964167219643 
+
 
 # Change num classes in preprocessor
 data_preprocessor = dict(
@@ -68,7 +81,7 @@ test_pipeline = [
     dict(type='PackInputs'),
 ]
 
-dataset_A_train = dict(
+dataset_1_train = dict(
     type=dataset_type,
     data_root='/data/its/vehicle_cls/vp3_202307_crop/',
     metainfo=metainfo,
@@ -78,7 +91,7 @@ dataset_A_train = dict(
     pipeline=train_pipeline
 )
 
-dataset_B_train = dict(
+dataset_2_train = dict(
     type=dataset_type,
     data_root='/data/its/vehicle_cls/202307_crop_ttp/',
     metainfo=metainfo,
@@ -88,24 +101,51 @@ dataset_B_train = dict(
     with_label=True,
     pipeline=train_pipeline
 )
+dataset_3_train = dict(
+    type=dataset_type,
+    data_root='/data/its/vehicle_cls/vehicle_v3/',
+    metainfo=metainfo,
+    ann_file='annotations/train.txt',
+    # split='train',
+    data_prefix='images/',
+    with_label=True,
+    pipeline=train_pipeline)
+
+dataset_4_train = dict(
+    type=dataset_type,
+    data_root='/data/its/vehicle_cls/vehicle_v4/',
+    metainfo=metainfo,
+    ann_file='annotations/train.txt',
+    # split='train',
+    data_prefix='images/',
+    with_label=True,
+    pipeline=train_pipeline)
 
 # repeat dataset
-dataset_A_train_repeat = dict(
+dataset_1_train_repeat = dict(
     type='RepeatDataset',
     times=40,
-    dataset=dataset_A_train
+    dataset=dataset_1_train
 )
-dataset_B_train_repeat = dict(
+dataset_2_train_repeat = dict(
     type='RepeatDataset',
     times=20,
-    dataset=dataset_B_train
+    dataset=dataset_2_train
 )
+dataset_3_train_repeat = dict(
+    type='RepeatDataset',
+    times=20,
+    dataset=dataset_3_train)
 
+dataset_4_train_repeat = dict(
+    type='RepeatDataset',
+    times=40,
+    dataset=dataset_4_train)
 # Concat dataset
 dataset_concat = dict(
     type='ConcatDataset',
     _delete_=True,
-    datasets=[dataset_A_train_repeat, dataset_B_train_repeat])
+    datasets=[dataset_1_train_repeat, dataset_2_train_repeat, dataset_3_train_repeat, dataset_4_train_repeat])
 
 train_dataloader = dict(
     batch_size=256,
@@ -113,7 +153,7 @@ train_dataloader = dict(
 )
 
 # Val dataloaders
-dataset_A_val = dict(
+dataset_1_val = dict(
     type=dataset_type,
     data_root='/data/its/vehicle_cls/vp3_202307_crop/',
     metainfo=metainfo,
@@ -123,7 +163,7 @@ dataset_A_val = dict(
     pipeline=test_pipeline
 )
 
-dataset_B_val = dict(
+dataset_2_val = dict(
     type=dataset_type,
     data_root='/data/its/vehicle_cls/202307_crop_ttp/',
     metainfo=metainfo,
@@ -133,11 +173,31 @@ dataset_B_val = dict(
     pipeline=test_pipeline
 )
 
+dataset_3_val = dict(
+    type=dataset_type,
+    data_root='/data/its/vehicle_cls/vehicle_v3',
+    metainfo=metainfo,
+    ann_file='annotations/test.txt',
+    data_prefix='images/',
+    with_label=True,
+    pipeline=test_pipeline
+)
+
+dataset_4_val = dict(
+    type=dataset_type,
+    data_root='/data/its/vehicle_cls/vehicle_v4',
+    metainfo=metainfo,
+    ann_file='annotations/test.txt',
+    data_prefix='images/',
+    with_label=True,
+    pipeline=test_pipeline
+)
 # Apply concat dataset to val
 dataset_val = dict(
     type='ConcatDataset',
     _delete_=True,
-    datasets=[dataset_A_val, dataset_B_val])
+    datasets=[dataset_1_val, dataset_2_val, dataset_3_val, dataset_4_val])
+
 val_dataloader = dict(
     batch_size=64,
     dataset=dataset_val
