@@ -45,7 +45,6 @@ bgr_std = data_preprocessor['std'][::-1]
 
 # dataset
 dataset_type = 'ImageNet'
-
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
