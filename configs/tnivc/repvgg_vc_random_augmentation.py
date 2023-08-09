@@ -14,22 +14,23 @@ load_from = "https://download.openmmlab.com/mmclassification/v0/repvgg/repvgg-A0
 model = dict(
     head=dict(num_classes=num_classes,
               loss=dict(type='CrossEntropyLoss', loss_weight=1.0,
-                                    # sedan,  suv,   bantai, bagac,  tainho, tailon,  container,  cau+xuc=.., 16cho,   29cho,  52cho
-                        class_weight=[0.843,  0.356, 2.559,  26.95,  1.20,   0.2969,  1.32,       2.994,      2.018,  4.98,   1.672])))
-# Balancing Factors:    
-# Class 0: 0.8437970868910095 
-# Class 1: 0.35656172621153165 
-# Class 2: 2.559674961909599 
-# Class 3: 26.951871657754012 
-# Class 4: 1.2057416267942584 
-# Class 5: 0.2969422023213339 
-# Class 6: 1.3204086979303118 
-# Class 7: 2.9946524064171123 
-# Class 8: 2.0184221065278334 
-# Class 9: 4.980237154150197 
-# Class 10: 1.6721964167219643 
+                        class_weight=[0.6362, 0.6810, 1, 1, 0.9137, 0.3440, 1, 1, 1, 1, 1])))
+#Class          sedan   suv     bantai  bagac   tainho  tailon  container   cau+xuc=..  16cho   29cho   52cho
+#After repeat	13070	12210	4100	1760	9100	24170	7250	    6650	    4100	2110	6940
+#Balance factor 0.6362  0.6810  1       1       0.9137  0.3440  1           1           1       1       1
 
-
+# True calculate class weight:
+# Class 1 weight: 0.6362
+# Class 2 weight: 0.6810
+# Class 3 weight: 2.0279
+# Class 4 weight: 4.7242
+# Class 5 weight: 0.9137
+# Class 6 weight: 0.3440
+# Class 7 weight: 1.1468
+# Class 8 weight: 1.2503
+# Class 9 weight: 2.0279
+# Class 10 weight: 3.9405
+# Class 11 weight: 1.1981
 # Change num classes in preprocessor
 data_preprocessor = dict(
     num_classes=num_classes,
@@ -128,17 +129,17 @@ dataset_1_train_repeat = dict(
 )
 dataset_2_train_repeat = dict(
     type='RepeatDataset',
-    times=20,
+    times=10,
     dataset=dataset_2_train
 )
 dataset_3_train_repeat = dict(
     type='RepeatDataset',
-    times=20,
+    times=40,
     dataset=dataset_3_train)
 
 dataset_4_train_repeat = dict(
     type='RepeatDataset',
-    times=40,
+    times=80,
     dataset=dataset_4_train)
 # Concat dataset
 dataset_concat = dict(
@@ -195,14 +196,23 @@ dataset_4_val = dict(
 dataset_val = dict(
     type='ConcatDataset',
     _delete_=True,
-    datasets=[dataset_1_val, dataset_2_val, dataset_3_val, dataset_4_val])
+    datasets=[dataset_1_val, dataset_2_val,dataset_3_val, dataset_4_val])
 
 val_dataloader = dict(
     batch_size=64,
     dataset=dataset_val
 )
 
+# accuracy
 val_evaluator = dict(type='Accuracy', topk=(1, 5))
+
+# OR Precision, Recall, F1-score
+val_evaluator = dict(
+    _delete_=True,
+    type='SingleLabelMetric',
+    average=None, # Print out classwise
+    # average='macro' # average
+)
 
 test_dataloader = val_dataloader
 test_evaluator = val_evaluator
