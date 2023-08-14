@@ -14,23 +14,23 @@ load_from = "https://download.openmmlab.com/mmclassification/v0/repvgg/repvgg-A0
 model = dict(
     head=dict(num_classes=num_classes,
               loss=dict(type='CrossEntropyLoss', loss_weight=1.0,
-                        class_weight=[0.6362, 0.6810, 1.5, 2, 0.9137, 0.3440, 1, 1, 1.5, 2, 1])))
+                        class_weight=[0.8, 0.5, 1, 2, 1, 0.4, 1, 1, 1, 1, 1])))
 #Class          sedan   suv     bantai  bagac   tainho  tailon  container   cau+xuc=..  16cho   29cho   52cho
-#After repeat	13230	12380	4050	3040	8850	24040	7060	    7040	    3950	2010	6700
-#Balance factor 0.6362	0.6810	1.5	    2	    0.9137	0.3440	1	        1	        1.5	    2	    1
+#After repeat	10518	21237	5050	2752	7720	25126	7403	    4967	    5444	4178	6698
+#Balance factor 0.8,     0.5,   1,      2,      1,       0.4,    1,           1,         1,      1,      1
 
 # True calculate class weight:
-# Class 1 weight: 0.6346
-# Class 2 weight: 0.6781
-# Class 3 weight: 2.0730
-# Class 4 weight: 2.7617
-# Class 5 weight: 0.9486
-# Class 6 weight: 0.3492
-# Class 7 weight: 1.1892
-# Class 8 weight: 1.1925
-# Class 9 weight: 2.1254
-# Class 10 weight: 4.1768
-# Class 11 weight: 1.2531
+# Class 1 weight: 0.8738
+# Class 2 weight: 0.4327
+# Class 3 weight: 1.8199
+# Class 4 weight: 3.3395
+# Class 5 weight: 1.1904
+# Class 6 weight: 0.3658
+# Class 7 weight: 1.2414
+# Class 8 weight: 1.8503
+# Class 9 weight: 1.6881
+# Class 10 weight: 2.1997
+# Class 11 weight: 1.3721
 # Change num classes in preprocessor
 data_preprocessor = dict(
     num_classes=num_classes,
@@ -120,11 +120,12 @@ dataset_4_train = dict(
     data_prefix='images/',
     with_label=True,
     pipeline=train_pipeline)
-dataset_bagac = dict(
+
+dataset_5 = dict(
     type=dataset_type,
-    data_root='/data/its/vehicle_cls/bagac',
+    data_root='/data/its/vehicle_cls/vehicle_v5',
     metainfo=metainfo,
-    ann_file='annotations/bagac.txt',
+    ann_file='annotations/train.txt',
     # split='train',
     data_prefix='images/',
     with_label=True,
@@ -150,15 +151,17 @@ dataset_4_train_repeat = dict(
     type='RepeatDataset',
     times=80,
     dataset=dataset_4_train)
-dataset_bagac_train_repeat = dict(
+
+dataset_5_train_repeat = dict(
     type='RepeatDataset',
-    times=80,
-    dataset=dataset_bagac)
+    times=3,
+    dataset=dataset_5)
+
 # Concat dataset
 dataset_concat = dict(
     type='ConcatDataset',
     _delete_=True,
-    datasets=[dataset_1_train_repeat, dataset_2_train_repeat, dataset_3_train_repeat, dataset_4_train_repeat, dataset_bagac_train_repeat])
+    datasets=[dataset_1_train_repeat, dataset_2_train_repeat, dataset_3_train_repeat, dataset_4_train_repeat, dataset_5_train_repeat])
 
 train_dataloader = dict(
     batch_size=256,
@@ -205,11 +208,22 @@ dataset_4_val = dict(
     with_label=True,
     pipeline=test_pipeline
 )
+
+dataset_5_val = dict(
+    type=dataset_type,
+    data_root='/data/its/vehicle_cls/vehicle_v5',
+    metainfo=metainfo,
+    ann_file='annotations/test.txt',
+    data_prefix='images/',
+    with_label=True,
+    pipeline=test_pipeline
+)
+
 # Apply concat dataset to val
 dataset_val = dict(
     type='ConcatDataset',
     _delete_=True,
-    datasets=[dataset_1_val, dataset_2_val,dataset_3_val, dataset_4_val])
+    datasets=[dataset_1_val, dataset_2_val,dataset_3_val, dataset_4_val, dataset_5_val])
 
 val_dataloader = dict(
     batch_size=64,
