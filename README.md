@@ -124,6 +124,7 @@ python tools/dataset_tools/visualize_class_images.py
         --show :if show flag given, show image before saving
 ```
 - Adding to retrieval Galley folder
+Usage: Use this tool to make or adding image from dataset to Gallery folder prepare for retrieval
 ```bash
 python tools/dataset_tools/make_gallery.py \
         --synset: synset txt file contain class name \
@@ -131,4 +132,42 @@ python tools/dataset_tools/make_gallery.py \
         --ann: path to annotation file using \
         --gal: path to Gallery folder \
         --n: number of images per class adding to gallery
+```
+- Pretrain model inference on pseudo annotation
+When we have to pseudo annotation from retrieval, we may use this tool to check if predict of retrieval is similar with pretrain predict \
+if True, move that image to output folder and write its label to output annotation.txt
+```bash
+python tools/dataset_tools/infer_on_pseu_ann.py \
+        config_file \
+        checkpoint_path \
+        --img image folder \ 
+        --ann pseudo annotation txt \
+        --out_img output predict image folder path, default = "./cache/predict_images" \
+        --out_ann output predict annotation txt, default = "./cache/predict_ann.txt" \
+        --thresh threshold of predict scores, default = 0.8 \
+        --CVAT path of images in CVAT, if given, path in output annotation file will correct with this path, default is None
+```
+- Predict specific class tool
+When we get image folder with is huge and we just need find out just our finding class's images, use this tool will pick the images \
+which predict score of given class above threshold to output folder/predict_{class_index}/image.jpg, for speed up CVAT checking process
+```bash
+python tools/dataset_tools/predict_specific_class.py \
+        config_file \
+        checkpoint_path \
+        --img image folder to predict \
+        --c specific class to get predict, can input several classes, eg: --c 3,4,5 \
+        --out output directory, defaults = "./cache/predict"
+        --thresh threshold of predict scores, default = 0.01
+        --remove if set will delete origin images in input folder if it exist in output folder
+        --CVAT if set will create annotation file of pseudo labels for each output folder, class will same in this file
+```
+- Post CVAT processing
+Usage: After checking by CVAT, use this to remove None class, and move image, label to dataset
+```bash
+python tools/dataset_tools/post_processing_ann.py \
+        CVAT output txt annotation path \ 
+        image folder path, which using in CVAT \ 
+        --ds_img dataset image folder path,  default='./cache/dataset/images/'
+        --ds_ann annotation folder path, default='./cache/dataset/annotations/'
+        --delete if set, delete image have None class in CVAT output
 ```
