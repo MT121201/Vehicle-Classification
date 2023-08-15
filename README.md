@@ -123,3 +123,12 @@ python tools/dataset_tools/visualize_class_images.py
         --o :output save image name, default = Visualize class index .jpg \
         --show :if show flag given, show image before saving
 ```
+- Adding to retrieval Galley folder
+```bash
+python tools/dataset_tools/make_gallery.py \
+        --synset: synset txt file contain class name \
+        --img: path to image folder \
+        --ann: path to annotation file using \
+        --gal: path to Gallery folder \
+        --n: number of images per class adding to gallery
+```
