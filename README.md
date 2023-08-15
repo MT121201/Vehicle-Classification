@@ -175,3 +175,14 @@ python tools/dataset_tools/post_processing_ann.py \
         --ds_ann annotation folder path, default='./cache/dataset/annotations/'
         --delete if set, delete image have None class in CVAT output
 ```
+-Fastdup
+
+Usage: Clean image after crop from video
+```bash
+python tools/dataset_tools/fastdup.py \
+        --input image dir \
+        --blur blur threshold, default =70
+        --brightness white brightness threshold, default = 220
+        --darkness darkness threshold, default = 50
+        --outliers outlier threshold, default = 0.68
+```
