@@ -96,22 +96,29 @@ synsets.txt file with classes_name in each line
 |-class 2
 |...
 
-ONNX:
+conda activate triet_fastreid
 python retrieval/pseudo_ann/retrieval_onnx.py \
 --query: path to Query folder, default = None
 --gallery: path to Gallery folder, default = /data/its/vehicle_cls/image_retrieval
 --synsets: path to synsets.txt file, default = /data/its/vehicle_cls/image_retrieval/synsets.txt
 --CVAT: correct CVAT path, default = None 
 --out: txt output annotation file, default = ./cache/annotation.txt
-
-Simian:
-python retrieval/pseudo_ann/simsiam_pseudo.py
--- //same as ONNX//
 ```
+### Dataset tools
 - Split dataset
 ```bash
-python tools/check_data/devide_dataset.py \
-        --input orginal annotations file \
-        --thresh split threshold, default is 0.85 \
-        --out output directory, default is in the same directory with input file
+python tools/dataset_tools/devide_dataset.py \
+        --input: orginal annotations file \
+        --thresh: split threshold, default is 0.85 \
+        --out: output directory, default is in the same directory with input file
+```
+- Visualize class in dataset
+```bash
+python tools/dataset_tools/visualize_class_images.py
+        annotation path \
+        image root path \
+        --c :class index want to visualize \
+        --n :number images want to visualize, default = 50 \
+        --o :output save image name, default = Visualize class index .jpg \
+        --show :if show flag given, show image before saving
 ```
