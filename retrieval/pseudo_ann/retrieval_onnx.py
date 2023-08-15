@@ -13,6 +13,7 @@ import onnxruntime as ort
 from torchvision import transforms
 from PIL import Image
 import argparse
+from tqdm import tqdm
 
 def load_img_from_dir(root_gallery):
     """Load image from directory, directory structure:
@@ -72,17 +73,21 @@ def cosine_similarity(query_features, gallery_features):
         np.linalg.norm(query_features) * np.linalg.norm(gallery_features)
     )
 
-def generate_pseudo_labels(query_images_folder, gallery_images_list, sess):
+def generate_pseudo_labels(query_images_folder, gallery_images_list, sess, threshold=0.8):
     gallery_features_dict = {}
     query_labels = {}
     print('Start generate pseudo annotation for query images')
     # Extract gallery features
+    print('Extract gallery features')
+    gallery_progress_bar = tqdm(total=len(gallery_images_list))
     for image_path in gallery_images_list:
         gallery_features = extract_features(image_path, sess)
         gallery_features_dict[image_path] = gallery_features
-    
-    # Extract query features and compute similarity
-    i = 0
+        gallery_progress_bar.update()
+    gallery_progress_bar.close()
+    print('Start inference query features')
+    progress_bar = tqdm(total=len(os.listdir(query_images_folder)))
+    count_image_higher_than_threshold = 0
     for filename in os.listdir(query_images_folder):
         if filename.endswith('.jpg'):
             query_image_path = os.path.join(query_images_folder, filename)
@@ -90,20 +95,20 @@ def generate_pseudo_labels(query_images_folder, gallery_images_list, sess):
 
             best_match = None
             best_similarity = -1
-            i +=1
-            # print process every 100 images
-            if i % 100 == 0:
-                # i/total
-                print('Process {} / {}'.format(i, len(os.listdir(query_images_folder))))
-            
             for gallery_filename, gallery_features in gallery_features_dict.items():
                 similarity = cosine_similarity(query_features, gallery_features)
                 if similarity > best_similarity:
                     best_similarity = similarity
                     best_match = gallery_filename
 
-            query_labels[filename] = os.path.splitext(best_match)[0]
+            if best_similarity > threshold:
+                query_labels[filename] = os.path.splitext(best_match)[0]
+                count_image_higher_than_threshold += 1
+        progress_bar.update()
     print("Finish generate pseudo annotation for query images")
+    print("Total query images: ", len(os.listdir(query_images_folder)))
+    print("Total query images higher than threshold: ", count_image_higher_than_threshold)
+    progress_bar.close()
     return query_labels
 
 def get_predict_class(path_of_highest_similar_image, class_names):
@@ -160,21 +165,32 @@ def arg_parse():
     parser.add_argument('--gallery', type=str, default='/data/its/vehicle_cls/image_retrieval', help='Path to gallery images folder')
     parser.add_argument('--synsets', type=str, default='/data/its/vehicle_cls/image_retrieval/synsets.txt', help='Path to synsets.txt file')
     parser.add_argument('--CVAT', type=str, default=None, help='Path to image in CVAT, if not None, correct the path in pseudo_annotation.txt')
+    parser.add_argument('--threshold', type=float, default=0.7, help='Threshold for similarity score')
     parser.add_argument('--out', type=str, default='./cache/annotation.txt', help='Path to output pseudo annotation file')
     args = parser.parse_args()
     return args
 def main():
     args = arg_parse()
+    # Check using GPU or CPu
+    device = ort.get_device()
+    print('Using device:', device)
+
     # Load the ONNX model
     onnx_model_path = "/models/vehicle_detector/image_retrieval/pseudo_annotation.onnx"
-    sess = ort.InferenceSession(onnx_model_path)
+    sess = ort.InferenceSession(onnx_model_path, providers=['CUDAExecutionProvider'])
 
     query_images_folder = args.query
+    if not os.path.isdir(query_images_folder):
+        raise ValueError('Query images folder not found')
     
     gallery_images_folder = args.gallery
+    if not os.path.isdir(gallery_images_folder):
+        raise ValueError('Gallery images folder not found')
     
     class_synsets = args.synsets
-    
+    if not os.path.isfile(class_synsets):
+        raise ValueError('Synsets file not found')
+
     # Correct path in CVAT, if None, return the real path
     # Sometime the path in repo is not same as path in CVAT, so we need to correct the path
     # SET NONE IF NOT USE
@@ -182,12 +198,11 @@ def main():
     out_path = args.out
     gallery_images_list = load_img_from_dir(gallery_images_folder)
     class_names = get_class_name(class_synsets)
+    pseudo_labels = generate_pseudo_labels(query_images_folder, gallery_images_list, sess, threshold=args.threshold)
 
-    pseudo_labels = generate_pseudo_labels(query_images_folder, gallery_images_list, sess)
-    
     # Write pseudo annotation, if CVAT_image_path != None, correct the path in pseudo_annotation.txt
     if CVAT_image_path != None:
-        print('Detect CVAT image path, now correct the query path in pseudo_annotation.txt')
+        print('Detect CVAT image path, now correct the path')
     write_pseudo_annotation(out_path ,pseudo_labels, class_names, CVAT_image_path)
     print('Done,!')
 
