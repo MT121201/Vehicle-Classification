@@ -175,7 +175,7 @@ python tools/dataset_tools/post_processing_ann.py \
         --ds_ann annotation folder path, default='./cache/dataset/annotations/'
         --delete if set, delete image have None class in CVAT output
 ```
--Fastdup
+- Fastdup
 
 Usage: Clean image after crop from video
 ```bash
