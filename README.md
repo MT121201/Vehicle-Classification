@@ -75,7 +75,7 @@ python tools/visualizer/test_dataset.py \
 ```
 
 ### Pseudo annotation
-```
+
  Gallery images folder structure:
     path
     |--- class_1
@@ -95,7 +95,7 @@ synsets.txt file with classes_name in each line
 |-class 1
 |-class 2
 |...
-
+```bash
 conda activate triet_fastreid
 python retrieval/pseudo_ann/retrieval_onnx.py \
 --query: path to Query folder, default = None
