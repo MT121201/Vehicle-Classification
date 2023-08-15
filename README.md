@@ -136,7 +136,7 @@ python tools/dataset_tools/make_gallery.py \
 ```
 - Pretrain model inference on pseudo annotation
 
-When we have to pseudo annotation from retrieval, we may use this tool to check if predict of retrieval is similar with pretrain predict \
+When we have to pseudo annotation from retrieval, we may use this tool to check if predict of retrieval is similar with pretrain predict 
 if True, move that image to output folder and write its label to output annotation.txt
 ```bash
 python tools/dataset_tools/infer_on_pseu_ann.py \
@@ -151,7 +151,7 @@ python tools/dataset_tools/infer_on_pseu_ann.py \
 ```
 - Predict specific class tool
 
-When we get image folder with is huge and we just need find out just our finding class's images, use this tool will pick the images \
+When we get image folder with is huge and we just need find out just our finding class's images, use this tool will pick the images 
 which predict score of given class above threshold to output folder/predict_{class_index}/image.jpg, for speed up CVAT checking process
 ```bash
 python tools/dataset_tools/predict_specific_class.py \
