@@ -67,7 +67,7 @@ def main():
     
     if args.o is None:
         print('No output image provided, will save to default name')
-        output_file = 'Visualize_class' + str(args.c) + '.jpg'
+        output_file = "./cache/" + 'Visualize_class_' + str(args.c) + '.jpg'
     else:
         output_file = args.o
     visualize_images(args.annotation_file, args.image_root, args.c, args.n, output_file, args.show)
