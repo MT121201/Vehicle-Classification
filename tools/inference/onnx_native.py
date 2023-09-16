@@ -17,7 +17,8 @@ def load_img(img_path):
     return img
 
 def load_model(onnx_file):
-    session = rt.InferenceSession(onnx_file)
+    provider = 'CUDAExecutionProvider' if rt.get_device() == 'GPU' else 'CPUExecutionProvider'
+    session = rt.InferenceSession(onnx_file, providers=[provider])
     return session
 
 def get_top_prediction(result):
@@ -41,10 +42,16 @@ def main(onnx_path, img_path, class_names):
     # Print top prediction
     print('Prediction: {}, score: {:.2f}%'.format(class_names[prediction[0]], score[0] * 100))
     
+def arg_parse():
+    parser = argparse.ArgumentParser(description="Inference onnx model")
+    parser.add_argument("--img", help="Path to the input image")
+    args = parser.parse_args()
+    return args
 
 if __name__ == '__main__':
-    onnx_path = "workdir/tnivc/onnx/end2end.onnx"
-    img_path = "workdir/tnivc/20230721113738260_113_2.jpg"
+    args = arg_parse()
+    onnx_path = "/checkpoints/vehicle_cls/vehicle_cls.onnx"
+    img_path = args.img
     class_names = ['xe sedan', 'xe SUV', 'xe ban tai', 'xe ba gac', 'xe tai nho', 
                  'xe tai lon', 'xe container', 'xe may xuc, may cau, xe lu, xe cho be tong', 
                  'xe 16 cho', 'xe 29-32 cho', 'xe 52 cho']

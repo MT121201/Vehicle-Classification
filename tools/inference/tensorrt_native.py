@@ -3,6 +3,7 @@ import pycuda.autoinit
 import numpy as np
 import tensorrt as trt
 import cv2
+import argparse
 import os
 
 def load_engine(engine_path):
@@ -64,10 +65,15 @@ def main(engine_file, image_path, class_names):
 
     # Print top prediction, score
     print('Prediction: {}, score: {:.2f}%'.format(class_names[postprocess(output)], output[postprocess(output)] * 100))
-
+def  arg_parse():
+    parser = argparse.ArgumentParser(description="Randomly split a txt file into train and test files.")
+    parser.add_argument("--input", help="Path to the input txt file")
+    args = parser.parse_args()
+    return args
 if __name__ == '__main__':
+    args = arg_parse()
     engine_file = 'workdir/tnivc/rt/end2end.engine'
-    image_path = 'workdir/tnivc/20230721113738260_113_2.jpg'
+    image_path = args.input
     class_names = ['xe sedan', 'xe SUV', 'xe ban tai', 'xe ba gac', 'xe tai nho', 
                  'xe tai lon', 'xe container', 'xe may xuc, may cau, xe lu, xe cho be tong', 
                  'xe 16 cho', 'xe 29-32 cho', 'xe 52 cho']
