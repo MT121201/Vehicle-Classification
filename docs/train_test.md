@@ -3,10 +3,10 @@
 export CUDA_VISIBLE_DEVICES=0
 echo "train classification model"
 
-WORKDIR="experiments/mobilenet-v3-small_8xb128_vc"
+WORKDIR="experiments/demo"
 
 # config file
-CFG="configs/tnivc/mobilenet-v3-small_8xb128_vc.py"
+CFG="configs/tnivc/demo.py"
 
 # train model
 mim train mmpretrain $CFG --work-dir $WORKDIR

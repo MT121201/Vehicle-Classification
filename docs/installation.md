@@ -21,8 +21,7 @@ pip install -U openmim
 mim install "mmengine>=0.6.0"
 mim install "mmcv>=2.0.0rc4,<2.1.0"
 mim install "mmpretrain==1.0.0"
-
-# TODO: Need to install mmdet?
+mim install mmdet==3.1.0
 
 # install this repo
 python setup.py develop
@@ -33,5 +32,8 @@ pip install tensorrt
 ```
 -   ONNXRuntime (GPU)
 ```bash
-pip install onnxruntime-gpu # TODO: which version?
+pip install onnxruntime-gpu==1.15.1
 ```
+
+- FastReID
+Please refer to [Official FastReID repo](https://github.com/JDAI-CV/fast-reid/tree/master)
