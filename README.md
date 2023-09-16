@@ -4,8 +4,6 @@ This repository not only facilitates the creation of pseudo-datasets through ima
 It demonstrates how to leverage the pseudo-labeling tool for smooth model training and deployment.
 The repository is specifically designed for classifying Vietnamese vehicles at toll booths, with images collected from a top-down perspective.
 
-# TODO: Please put all neccessary checkpoints and onnx under `/checkpoints/vechicle_cls`
-
 ### Installation
 - Refer to [docs/installation.md](docs/installation.md) for installing necessary libs.
 
