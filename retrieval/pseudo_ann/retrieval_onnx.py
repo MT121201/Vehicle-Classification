@@ -15,6 +15,7 @@ from PIL import Image
 import argparse
 from tqdm import tqdm
 
+
 def load_img_from_dir(root_gallery):
     """Load image from directory, directory structure:
     path
@@ -38,7 +39,8 @@ def load_img_from_dir(root_gallery):
                 img_path = os.path.join(class_path, img_name)
                 image_list.append(img_path)
     return image_list
-    
+
+
 def get_class_name(synsets_path):
     """Get class name from synsets.txt file
     Args:
@@ -52,14 +54,18 @@ def get_class_name(synsets_path):
             class_name.append(line.strip())
     return class_name
 
+
 # Preprocessing for images
 preprocess = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
 ])
 
 # Function to extract features from an image
+
+
 def extract_features(image_path, sess):
     image = Image.open(image_path).convert("RGB")
     image_tensor = preprocess(image).unsqueeze(0).numpy()
@@ -68,10 +74,12 @@ def extract_features(image_path, sess):
     features = sess.run([output_name], {input_name: image_tensor})[0]
     return features.squeeze()
 
+
 def cosine_similarity(query_features, gallery_features):
     return np.dot(query_features, gallery_features) / (
         np.linalg.norm(query_features) * np.linalg.norm(gallery_features)
     )
+
 
 def generate_pseudo_labels(query_images_folder, gallery_images_list, sess, threshold=0.8):
     gallery_features_dict = {}
@@ -96,7 +104,8 @@ def generate_pseudo_labels(query_images_folder, gallery_images_list, sess, thres
             best_match = None
             best_similarity = -1
             for gallery_filename, gallery_features in gallery_features_dict.items():
-                similarity = cosine_similarity(query_features, gallery_features)
+                similarity = cosine_similarity(
+                    query_features, gallery_features)
                 if similarity > best_similarity:
                     best_similarity = similarity
                     best_match = gallery_filename
@@ -107,9 +116,11 @@ def generate_pseudo_labels(query_images_folder, gallery_images_list, sess, thres
         progress_bar.update()
     print("Finish generate pseudo annotation for query images")
     print("Total query images: ", len(os.listdir(query_images_folder)))
-    print("Total query images higher than threshold: ", count_image_higher_than_threshold)
+    print("Total query images higher than threshold: ",
+          count_image_higher_than_threshold)
     progress_bar.close()
     return query_labels
+
 
 def get_predict_class(path_of_highest_similar_image, class_names):
     """Get class of predicted image from path of highest score similar image
@@ -122,6 +133,7 @@ def get_predict_class(path_of_highest_similar_image, class_names):
     class_name = path_of_highest_similar_image.split('/')[-2]
     class_idx = class_names.index(class_name)
     return class_idx
+
 
 def correct_image_path(real_path, query_img_path):
     """ For upload annotation to CVAT, sometimes the path is not correct (missing or extra some part of path)
@@ -136,6 +148,7 @@ def correct_image_path(real_path, query_img_path):
     img_name = query_img_path.split('/')[-1]
     correct_path = os.path.join(real_path, img_name)
     return correct_path
+
 
 def write_pseudo_annotation(out_path, pseudo_labels, class_names, CVAT_image_path=None):
     """Write pseudo annotation to file in ImageNet format
@@ -159,16 +172,27 @@ def write_pseudo_annotation(out_path, pseudo_labels, class_names, CVAT_image_pat
             annotation = str(query_path) + ' ' + str(class_idx)
             f.write(annotation)
             f.write('\n')
+
+
 def arg_parse():
-    parser = argparse.ArgumentParser(description='Generate pseudo annotation for query images')
-    parser.add_argument('--query', type=str, default=None, help='Path to query images folder')
-    parser.add_argument('--gallery', type=str, default='/data/its/vehicle_cls/image_retrieval', help='Path to gallery images folder')
-    parser.add_argument('--synsets', type=str, default='/data/its/vehicle_cls/image_retrieval/synsets.txt', help='Path to synsets.txt file')
-    parser.add_argument('--CVAT', type=str, default=None, help='Path to image in CVAT, if not None, correct the path in pseudo_annotation.txt')
-    parser.add_argument('--threshold', type=float, default=0.7, help='Threshold for similarity score')
-    parser.add_argument('--out', type=str, default='./cache/annotation.txt', help='Path to output pseudo annotation file')
+    parser = argparse.ArgumentParser(
+        description='Generate pseudo annotation for query images')
+    parser.add_argument('--query', type=str, default=None,
+                        help='Path to query images folder')
+    parser.add_argument('--gallery', type=str, default='/data/its/vehicle_cls/gallery_retrieval',
+                        help='Path to gallery images folder')
+    parser.add_argument('--synsets', type=str,
+                        default='/data/its/vehicle_cls/synsets.txt', help='Path to synsets.txt file')
+    parser.add_argument('--CVAT', type=str, default=None,
+                        help='Path to image in CVAT, if not None, correct the path in pseudo_annotation.txt')
+    parser.add_argument('--threshold', type=float, default=0.7,
+                        help='Threshold for similarity score')
+    parser.add_argument('--out', type=str, default='./cache/annotation.txt',
+                        help='Path to output pseudo annotation file')
     args = parser.parse_args()
     return args
+
+
 def main():
     args = arg_parse()
     # Check using GPU or CPu
@@ -176,17 +200,19 @@ def main():
     print('Using device:', device)
 
     # Load the ONNX model
+    # TODO: too hard code onnx_model_path, can you describe where does pseudo_annotation.onnx come from?
     onnx_model_path = "/models/vehicle_detector/image_retrieval/pseudo_annotation.onnx"
-    sess = ort.InferenceSession(onnx_model_path, providers=['CUDAExecutionProvider'])
+    sess = ort.InferenceSession(onnx_model_path, providers=[
+                                'CUDAExecutionProvider'])
 
     query_images_folder = args.query
     if not os.path.isdir(query_images_folder):
         raise ValueError('Query images folder not found')
-    
+
     gallery_images_folder = args.gallery
     if not os.path.isdir(gallery_images_folder):
         raise ValueError('Gallery images folder not found')
-    
+
     class_synsets = args.synsets
     if not os.path.isfile(class_synsets):
         raise ValueError('Synsets file not found')
@@ -195,16 +221,19 @@ def main():
     # Sometime the path in repo is not same as path in CVAT, so we need to correct the path
     # SET NONE IF NOT USE
     CVAT_image_path = args.CVAT
-    out_path = args.out
+    os.makedirs(os.path.dirname(args.out), exist_ok=True)
     gallery_images_list = load_img_from_dir(gallery_images_folder)
     class_names = get_class_name(class_synsets)
-    pseudo_labels = generate_pseudo_labels(query_images_folder, gallery_images_list, sess, threshold=args.threshold)
+    pseudo_labels = generate_pseudo_labels(
+        query_images_folder, gallery_images_list, sess, threshold=args.threshold)
 
     # Write pseudo annotation, if CVAT_image_path != None, correct the path in pseudo_annotation.txt
     if CVAT_image_path != None:
         print('Detect CVAT image path, now correct the path')
-    write_pseudo_annotation(out_path ,pseudo_labels, class_names, CVAT_image_path)
+    write_pseudo_annotation(args.out, pseudo_labels,
+                            class_names, CVAT_image_path)
     print('Done,!')
+
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,5 @@
 ##############################################################################################################
-# This script randomly splits a txt file into train and test files. The input txt file should have the format:
+# TODO: Is this description correct?? This script randomly splits a txt file into train and test files. The input txt file should have the format:
 #     image_path class_index
 #     image_path class_index
 # Usage:

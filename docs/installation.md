@@ -13,7 +13,7 @@ conda install pytorch==1.13.0 torchvision==0.14.0 torchaudio==0.13.0 pytorch-cud
 pip install scipy tqdm future tensorboard
 pip install timm==0.4.12 adabelief_pytorch motmetrics imagecorruptions
 pip install git+https://github.com/jonbarron/robust_loss_pytorch
-pip install --no-cache-dir -U albumentations --no-binary qudida,albumentations click
+pip install --no-cache-dir -U albumentations --no-binary qudida,albumentations click fastdup
 pip install git+https://github.com/thuyngch/cvut
 
 # install mmengine, mmcv, mmpretrain
@@ -35,5 +35,4 @@ pip install tensorrt
 pip install onnxruntime-gpu==1.15.1
 ```
 
-- FastReID
-Please refer to [Official FastReID repo](https://github.com/JDAI-CV/fast-reid/tree/master)
+- If you intend to employ FastReID for Image Retrieval, kindly proceed to install it using the [Official FastReID repo](https://github.com/JDAI-CV/fast-reid/tree/master)

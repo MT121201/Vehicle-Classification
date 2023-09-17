@@ -146,3 +146,5 @@ configs/mmpretrain
 command/
 experiments/
 visualize/
+mmdeploy-dep/
+work_dir/

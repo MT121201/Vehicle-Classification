@@ -1,11 +1,14 @@
-### Detect vehicle from video and crop it
+## Instruction video
+Before proceeding, it's important to watch [this video]() in order to gain an understanding of how to perform image retrieval, upload, labeling, and model training.
+
+## Detect vehicle from video and crop it
 ```bash
 python tools/dataset_tools/video_predict_crop.py \
 --video_dir directory contain videos to crop \
 --save folder to save cropped images
 ```
-### Fastdup
-Usage: Clean image after crop from video
+## Fastdup
+- Clean image after crop from video
 ```bash
 python tools/dataset_tools/clean_crop_images.py \
         --input image dir \
@@ -15,7 +18,9 @@ python tools/dataset_tools/clean_crop_images.py \
         --outliers outlier threshold, default = 0.68
 ```
 
-### Pseudo annotation by Retrieval
+## Pseudo annotation
+### Retrieval
+#### 1. [Retrieval] - Folder struture
 ```
  Gallery images folder structure:
     path
@@ -37,26 +42,59 @@ synsets.txt file with classes_name in each line
 |-class 2
 |...
 ```
+
+#### 2. [Retrieval] - Run Image Retrieval using the provided example below:
+
+- We will use a demo video under `/data/its/vehicle_cls/demo/video` to illustrate the process.
+
+- Crop Video
+```bash
+python tools/dataset_tools/video_predict_crop.py \
+        --video_dir /data/its/vehicle_cls/demo/video \
+        --save /data/its/vehicle_cls/demo/crop_from_video
+```
+
+- Clean after crop
+```bash
+python tools/dataset_tools/clean_crop_images.py \
+        --input /data/its/vehicle_cls/demo/crop_from_video
+```
+
+- Adding to retrieval Galley folder
+Usage: Use this tool to make or adding image from dataset to Gallery folder prepare for retrieval
+```bash
+python tools/dataset_tools/make_gallery.py \
+        --synset /data/its/vehicle_cls/synsets.txt \
+        --img /data/its/vehicle_cls/vehicle_v5/images \
+        --ann /data/its/vehicle_cls/vehicle_v5/annotations/annotations.txt \
+        --gal /data/its/vehicle_cls/gallery_retrieval --n 10
+```
+
+- Retrieval Pseudo Annotation
 ```bash
 python retrieval/pseudo_ann/retrieval_onnx.py \
---query: path to Query folder, default = None
---gallery: path to Gallery folder, default = /data/its/vehicle_cls/gallery_retrieval
---synsets: path to synsets.txt file, default = /data/its/vehicle_cls/synsets.txt
---CVAT: correct CVAT path, default = None 
---out: txt output annotation file, default = ./cache/annotation.txt
+        --query /data/its/vehicle_cls/demo/crop_from_video \
+        --gallery /data/its/vehicle_cls/gallery_retrieval \
+        --CVAT its/vehicle_cls/demo/crop_from_video \
+        --out /data/its/vehicle_cls/demo/annotations/pseudo_annotation.txt \
+        --synsets /data/its/vehicle_cls/synsets.txt
 ```
-### Dataset tools
-- Post CVAT processing
 
-Usage: After checking by CVAT, use this to remove None class, and move image, label to dataset
+- Upload the data to CVAT to label.
+
+- Post CVAT processing: After labeling by CVAT, use this to remove None class, and move image, label to dataset
 ```bash
 python tools/dataset_tools/post_processing_ann.py \
-        CVAT output txt annotation path \ 
-        image folder path, which using in CVAT \ 
-        --ds_img dataset image folder path,  default='./cache/dataset/images/'
-        --ds_ann annotation folder path, default='./cache/dataset/annotations/'
-        --delete if set, delete image have None class in CVAT output
+        /data/its/vehicle_cls/demo/annotations/pseudo_annotation.txt \ 
+        /data/its/vehicle_cls/demo/crop_from_video \ 
+        --ds_img /data/its/vehicle_cls/demo/images \
+        --ds_ann /data/its/vehicle_cls/demo/annotations 
 ```
+
+#### 3. Pseudo using trained classification model
+- TODO: Add an instruction video and demo commands in this case
+
+#### Useful tools
 - Split dataset
 ```bash
 python tools/dataset_tools/devide_dataset.py \
@@ -73,42 +111,4 @@ python tools/dataset_tools/visualize_class_images.py
         --n :number images want to visualize, default = 50 \
         --o :output save image name, default = Visualize class index .jpg \
         --show :if show flag given, show image before saving
-```
-- Adding to retrieval Galley folder
-
-Usage: Use this tool to make or adding image from dataset to Gallery folder prepare for retrieval
-```bash
-python tools/dataset_tools/make_gallery.py \
-        --synset: synset txt file contain class name \
-        --img: path to image folder \
-        --ann: path to annotation file using \
-        --gal: path to Gallery folder \
-        --n: number of images per class adding to gallery
-```
-#### Demo
-- Crop Video
-```bash
-python tools/dataset_tools/video_predict_crop.py \
---video_dir /data/its/vehicle_cls/demo/video \
---save /data/its/vehicle_cls/demo/crop_from_video
-```
-- Clean after crop
-```bash
-python tools/dataset_tools/clean_crop_images.py \
-        --input /data/its/vehicle_cls/demo/crop_from_video
-```
-- Retrieval Pseudo Annotation
-```bash
-python retrieval/pseudo_ann/retrieval_onnx.py \
---query /data/its/vehicle_cls/demo/crop_from_video \
---CVAT its/vehicle_cls/demo/crop_from_video
---out /data/its/vehicle_cls/demo/annotations
-```
-- Post CVAT processing
-```bash
-python tools/dataset_tools/post_processing_ann.py \
-        /data/its/vehicle_cls/demo/annotations/pseudo_annotation.txt \ 
-        /data/its/vehicle_cls/demo/crop_from_video \ 
-        --ds_img /data/its/vehicle_cls/demo/images \
-        --ds_ann /data/its/vehicle_cls/demo/annotations 
 ```

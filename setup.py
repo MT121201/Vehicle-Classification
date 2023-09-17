@@ -12,7 +12,7 @@ setup(name='tnivc',
 print("Your Site Packages path:")
 lib_path = get_python_lib()
 print(lib_path)
-for mmpackage in ['mmpretrain', ]:
+for mmpackage in ['mmpretrain', 'mmdet']:
     cfg_path = f'configs/{mmpackage}'
     if os.path.islink(cfg_path):
         print(f'unlink {cfg_path}')

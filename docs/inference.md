@@ -18,5 +18,5 @@ python -m pip install onnxruntime-gpu==1.15.1
 - model path : /checkpoints/vehicle_cls/vehicle_cls.onnx
 ```bash
 python tools/inference/onnx_native.py
---img image path to inference model
+    --img image path to inference model
 ```

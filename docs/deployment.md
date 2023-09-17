@@ -24,11 +24,11 @@ python tools/deploy.py \
 
 # example command
 python tools/deploy.py \
-    /home/tni/Workspace/triet/mmdeploy/configs/mmpretrain/classification_tensorrt-fp16_dynamic-224x224-224x224.py \
-    /home/tni/Workspace/triet/Vehicle-Classification/configs/tnivc/demo.py \
-    /checkpoints/vehicle_cls/config/pretrain_best.pth \
+    configs/mmpretrain/classification_tensorrt-fp16_dynamic-224x224-224x224.py \
+    ../configs/tnivc/demo.py \
+    /checkpoints/vehicle_cls/config/pretrain_best.pth \ # TODO: Rename the folder/file names
     /data/its/vehicle_cls/202307_crop_ttp/images/frame_00000001_1.jpg \
-    --work-dir work_dir/vehicle_cls/rt \
+    --work-dir work_dir/vehicle_cls/demo \
     --device cuda \
     --dump-info
 ```
