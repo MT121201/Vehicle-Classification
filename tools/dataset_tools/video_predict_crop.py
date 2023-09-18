@@ -1,52 +1,63 @@
-import argparse
-
+import os
 import cv2
+import uuid
 import mmcv
+import torch
+import argparse
+from mmengine import Config
 from mmcv.transforms import Compose
 from mmengine.utils import track_iter_progress
-
 from mmdet.apis import inference_detector, init_detector
-from mmdet.registry import VISUALIZERS
-import os
-import torch
-import uuid  # Import the uuid library
-from tqdm import tqdm
-import numpy as np
 
-def cut_video(video_path, save_image, model):   
-    
+
+def cut_video(video_path, save_image, model, model_info, args):
+
     test_pipeline = Compose(model.cfg.test_dataloader.dataset.pipeline)
     video_reader = mmcv.VideoReader(video_path)
     total_frames = video_reader.frame_cnt
-    frame_count =  0
+    frame_count = 0
     vehicle_count = 0
-    desired_fps = 5
+    desired_fps = args.fps
     fps = int(video_reader.fps)
     frame_interval = int(fps / desired_fps)
     frame_save = 0
+    taken_classes = model_info['data_info']['taken_classes']
+    all_classes = model_info['data_info']['all_classes']
+    bagac_class = model_info['data_info']['bagac']
     for frame in track_iter_progress(video_reader):
         frame_count += 1
         # Only process every frame_interval frames
         if frame_count % frame_interval == 0:
             frame_save += 1
-            result = inference_detector(model, frame, test_pipeline=test_pipeline)
+            result = inference_detector(
+                model, frame, test_pipeline=test_pipeline)
             # Get results labels
-            pred_classes = result.pred_instances.labels # Tensor of all predict labels index
-            # take index where there is class = 2, 5, 6, 7, 8
-            car = torch.where(pred_classes == 2)[0] # 2 is car
-            bus = torch.where(pred_classes == 5)[0] # 5 is bus
-            train = torch.where(pred_classes == 6)[0] # 6 is truck
-            truck = torch.where(pred_classes == 7)[0] # 7 is train
-            boat = torch.where(pred_classes == 8)[0] # 8 is boat
-            vehicle = torch.cat((car, bus, train, truck, boat), 0) # Tensor of all vehicle index
-            bagac = torch.where(pred_classes == 13)[0] # Tensor of all bagac index
+            # Tensor of all predict labels index
+            pred_classes = result.pred_instances.labels
+            all_taken_objs = []
+            for classname in taken_classes:
+                taken_objs = torch.where(
+                    pred_classes == all_classes.index(classname))[0]
+                all_taken_objs.append(taken_objs)
+                # # take index where there is class = 2, 5, 6, 7, 8
+                # car = torch.where(pred_classes == 2)[0]  # 2 is car
+                # bus = torch.where(pred_classes == 5)[0]  # 5 is bus
+                # train = torch.where(pred_classes == 6)[0]  # 6 is truck
+                # truck = torch.where(pred_classes == 7)[0]  # 7 is train
+                # boat = torch.where(pred_classes == 8)[0]  # 8 is boat
+            # Tensor of all vehicle index
+            vehicle = torch.cat(all_taken_objs, 0)
+             # Tensor of all bagac index
+            bagac = torch.where(pred_classes == all_classes.index(bagac_class))[0] 
 
             # Keep index if its score is greater than 0.3
-            pred_scores = result.pred_instances.scores # Tensor of predict scores
-            thresh_1_index = torch.where(pred_scores > 0.3)[0] # Tensor of index where score > 0.3
+            pred_scores = result.pred_instances.scores  # Tensor of predict scores
+            # Tensor of index where score > 0.3
+            thresh_1_index = torch.where(pred_scores > 0.3)[0]
             # Keep only vehicle index where score > 0.3
             vehicle_keep = vehicle[torch.isin(vehicle, thresh_1_index)]
-            thresh_2_index = torch.where(pred_scores > 0.1)[0] # Tensor of index where score > 0.1
+            # Tensor of index where score > 0.1
+            thresh_2_index = torch.where(pred_scores > 0.1)[0]
             # Keep only bagac index where score > 0.1
             bagac_keep = bagac[torch.isin(bagac, thresh_2_index)]
 
@@ -55,7 +66,8 @@ def cut_video(video_path, save_image, model):
             vehicle_boxes = pred_boxes[vehicle_keep]
             bagac_boxes = pred_boxes[bagac_keep]
             combined_boxes = torch.cat((vehicle_boxes, bagac_boxes), 0)
-            print(' Found {} vehicles and {} bagac  '.format(len(vehicle_boxes), len(bagac_boxes)))
+            print(' Found {} vehicles and {} bagac  '.format(
+                len(vehicle_boxes), len(bagac_boxes)))
             vehicle_count += len(combined_boxes)
             # Crop image
             image = frame
@@ -69,38 +81,49 @@ def cut_video(video_path, save_image, model):
                 bbox[2] = min(int(bbox[2] + box_width * 0.05), w)
                 bbox[3] = min(int(bbox[3] + box_height * 0.1), h)
                 # Crop the image using the bounding box
-                cropped_image = image[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]
-                # Generate cropped image filename  
+                cropped_image = image[int(bbox[1]):int(
+                    bbox[3]), int(bbox[0]):int(bbox[2])]
+                # Generate cropped image filename
                 unique_key = uuid.uuid4().hex
                 cropped_image_filename = f'frame_{frame_save}_{idx}_{unique_key}.jpg'
                 # Save the cropped image
-                cropped_image_path = os.path.join(save_image, cropped_image_filename)
+                cropped_image_path = os.path.join(
+                    save_image, cropped_image_filename)
                 cv2.imwrite(cropped_image_path, cropped_image)
     print('Found {} vehicles in total'.format(vehicle_count))
+
+
 def arg_parse():
     parser = argparse.ArgumentParser(description='MMDetection video inference')
     parser.add_argument('--video_dir', help='video file')
+    parser.add_argument('--model_cfg',
+                        help='mmdetection model info',
+                        default='configs/retrival/mmdet_coco.py')
     parser.add_argument('--save', help='save image')
+    parser.add_argument('--fps', help='desired fps', default=5)
     args = parser.parse_args()
     return args
+
+
 def main():
     args = arg_parse()
-    config = 'configs/mmdet/swin/mask-rcnn_swin-t-p4-w7_fpn_1x_coco.py'
-    checkpoint = 'https://download.openmmlab.com/mmdetection/v2.0/swin/mask_rcnn_swin-t-p4-w7_fpn_1x_coco/mask_rcnn_swin-t-p4-w7_fpn_1x_coco_20210902_120937-9d6b7cfa.pth'
     video_dir = args.video_dir
     save_image = args.save
     if not os.path.exists(save_image):
         os.makedirs(save_image)
-    model = init_detector(config, checkpoint, device='cuda:0')
+    model_info = Config.fromfile(args.model_cfg)
+    model = init_detector(model_info['mmdet_model']['config'],
+                          model_info['mmdet_model']['checkpoint'], device='cuda:0')
     # build test pipeline
     model.cfg.test_dataloader.dataset.pipeline[0].type = 'LoadImageFromNDArray'
+    length = len(os.listdir(video_dir))
     count = 0
     for video in os.listdir(video_dir):
-        count +=1
-        if count > 30:
-            break
-        print('Processing video {} of {}'.format(count, 30))
+        count += 1
+        print('Processing video {} of {}'.format(count, length))
         video_path = os.path.join(video_dir, video)
-        cut_video(video_path, save_image, model)
+        cut_video(video_path, save_image, model, model_info, args)
+
+
 if __name__ == '__main__':
     main()
