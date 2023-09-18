@@ -1,9 +1,9 @@
 ##############################################################################################################
-# TODO: Is this description correct?? This script randomly splits a txt file into train and test files. The input txt file should have the format:
+# This script randomly splits a annotation txt file into train and test files. The input txt file should have the format:
 #     image_path class_index
 #     image_path class_index
 # Usage:
-#     python tools/check_data/devide_dataset.py \
+#     python tools/dataset_tools/devide_dataset.py \
 #         --input orginal annotations file \
 #         --thresh split threshold, default is 0.85 \
 #         --out output directory, default is in the same directory with input file
@@ -55,7 +55,7 @@ def main():
     args = arg_parse()
     # Check if user has provided the output directory, if not use the same directory as the input file
     if args.out is None:
-        output_directory = os.path.dirname(args.input_file)
+        output_directory = os.path.dirname(args.input)
     else:
         output_directory = args.out
     # Check if the output directory exists, if not create it
