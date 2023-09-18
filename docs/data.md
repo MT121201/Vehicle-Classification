@@ -48,9 +48,12 @@ synsets.txt file with classes_name in each line
 - We will use a demo video under `/data/its/vehicle_cls/demo/video` to illustrate the process.
 
 - Crop Video
+- First check config inside "configs/retrival/mmdet_coco.py"
 ```bash
 python tools/dataset_tools/video_predict_crop.py \
+        --model_cfg path to above config file \
         --video_dir /data/its/vehicle_cls/demo/video \
+        --fps specific FPS to read video, default is 5 FPS
         --save /data/its/vehicle_cls/demo/crop_from_video
 ```
 
