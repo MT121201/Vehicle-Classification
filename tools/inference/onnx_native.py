@@ -2,19 +2,21 @@ import onnxruntime as rt
 import numpy as np
 from PIL import Image
 import argparse
+import os
+import importlib.util
 
-
-def load_img(img_path):
-    # TODO: move image after resize, normalize to config file, similar with this file https://github.com/TNI-LTD/Online-Action-Detection/blob/main/configs/infer_oad/repvva0_oad_with_persondet_infer.py
+def load_img(img_path, mean, std, resize):
     # TODO: in this case, the mean=(0, 0, 0), std=(255, 255, 255)
-
+    
     img = Image.open(img_path)
     # Resize to (224, 224)
-    img = img.resize((224, 224), Image.BILINEAR)
+    img = img.resize(resize, Image.BILINEAR)
     # Normalize to [0.0, 1.0]
-    img = np.array(img).astype(np.float32) / 255.0 # img = (img-mean)/std
+    img = np.array(img)
+    # Normalize
+    img = (img - mean) / std
     # HWC to CHW format:
-    img = np.transpose(img, [2, 0, 1])
+    img = np.transpose(img, [2, 0, 1]).astype(np.float32)
     # NCHW format:
     img = np.expand_dims(img, axis=0)
     return img
@@ -34,9 +36,9 @@ def get_top_prediction(result):
     return prediction, score
 
 
-def main(onnx_path, img_path, class_names):
+def main(onnx_path, img_path, class_names, mean, std, resize):
     # Load image
-    img = load_img(img_path)
+    img = load_img(img_path, mean, std, resize)
     # Load model
     session = load_model(onnx_path)
     # Run inference
@@ -53,6 +55,7 @@ def main(onnx_path, img_path, class_names):
 
 def arg_parse():
     parser = argparse.ArgumentParser(description="Inference onnx model")
+    parser.add_argument("--config", help="Path to the config file")
     parser.add_argument("--img", help="Path to the input image")
     args = parser.parse_args()
     return args
@@ -60,10 +63,14 @@ def arg_parse():
 
 if __name__ == '__main__':
     args = arg_parse()
-    # TODO: move onnx_path, classes names to config file, similar with this file https://github.com/TNI-LTD/Online-Action-Detection/blob/main/configs/infer_oad/repvva0_oad_with_persondet_infer.py
-    onnx_path = "/checkpoints/vehicle_cls/vehicle_cls.onnx"
+    config_spec = importlib.util.spec_from_file_location('config', args.config)
+    config_module = importlib.util.module_from_spec(config_spec)
+    config_spec.loader.exec_module(config_module)
+    onnx_path = config_module.model
+    class_names = config_module.class_names
+    mean = np.array(config_module.mean)
+    std = np.array(config_module.std)
+    resize = config_module.size
     img_path = args.img
-    class_names = ['xe sedan', 'xe SUV', 'xe ban tai', 'xe ba gac', 'xe tai nho',
-                   'xe tai lon', 'xe container', 'xe may xuc, may cau, xe lu, xe cho be tong',
-                   'xe 16 cho', 'xe 29-32 cho', 'xe 52 cho']
-    main(onnx_path, img_path, class_names)
+
+    main(onnx_path, img_path, class_names, mean, std, resize)
