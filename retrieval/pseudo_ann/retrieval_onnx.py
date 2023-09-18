@@ -200,8 +200,8 @@ def main():
     print('Using device:', device)
 
     # Load the ONNX model
-    # TODO: too hard code onnx_model_path, can you describe where does pseudo_annotation.onnx come from?
-    onnx_model_path = "/models/vehicle_detector/image_retrieval/pseudo_annotation.onnx"
+    # This is model convert from official fastreid model
+    onnx_model_path = "/checkpoints/vehicle_cls/fastreid_retrieval.onnx"
     sess = ort.InferenceSession(onnx_model_path, providers=[
                                 'CUDAExecutionProvider'])
 
