@@ -95,7 +95,22 @@ python tools/dataset_tools/post_processing_ann.py \
 ```
 
 #### 3. Pseudo using trained classification model
-- TODO: Add an instruction video and demo commands in this case
+- In case of we have pretrain model, we can use it for pseudo annotations
+- We will use config at `configs/tnivc/demo.py` and checkpoint save in `/checkpoints/vehicle_cls/repvgg/93_at_94ep.pth`
+```bash
+python tools/pseudo_annotation/pretrain_pseudo_ann.py \
+        model config file \
+        checkpoint file \
+        --img image folder to predict \
+        --out output folder will contain pseudo annotations \
+        --CVAT if given, will fix image path in anntation file with this path
+## Demo
+python tools/pseudo_annotation/pretrain_pseudo_ann.py \
+        configs/tnivc/demo.py \
+        /checkpoints/vehicle_cls/repvgg/93_at_94ep.pth \
+         --img /data/its/vehicle_cls/demo/crop_video \
+         --out /data/its/vehicle_cls/demo/annotations \
+```
 
 #### Useful tools
 - Split dataset
