@@ -15,8 +15,9 @@ pip uninstall onnxruntime-gpu
 python -m pip install onnxruntime-gpu==1.15.1
 ```
 ### Inference
-- model path : /checkpoints/vehicle_cls/vehicle_cls.onnx
+- check the config in file "configs/inference/onnx_infer.py"
 ```bash
 python tools/inference/onnx_native.py
+    --config path to config file 
     --img image path to inference model
 ```
