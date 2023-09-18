@@ -5,8 +5,8 @@ mmdet_model = dict(
 )
 
 data_info = dict(
-    taken_classes = [], # TODO: add classes name that will be taken, for example taken_classes = ['person', 'car']
-    bagac = ['bench'],
+    taken_classes = ['car','bus','train','truck','boat'],
+    bagac = 'bench',
     all_classes = [
         'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train',
         'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign',
