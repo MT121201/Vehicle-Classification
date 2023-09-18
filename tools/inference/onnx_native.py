@@ -5,9 +5,7 @@ import argparse
 import os
 import importlib.util
 
-def load_img(img_path, mean, std, resize):
-    # TODO: in this case, the mean=(0, 0, 0), std=(255, 255, 255)
-    
+def load_img(img_path, mean, std, resize):    
     img = Image.open(img_path)
     # Resize to (224, 224)
     img = img.resize(resize, Image.BILINEAR)
