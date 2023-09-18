@@ -26,7 +26,7 @@ python tools/deploy.py \
 python tools/deploy.py \
     configs/mmpretrain/classification_tensorrt-fp16_dynamic-224x224-224x224.py \
     ../configs/tnivc/demo.py \
-    /checkpoints/vehicle_cls/config/pretrain_best.pth \ # TODO: Rename the folder/file names
+    /checkpoints/vehicle_cls/repvgg/93_at_94ep.pth \ 
     /data/its/vehicle_cls/202307_crop_ttp/images/frame_00000001_1.jpg \
     --work-dir work_dir/vehicle_cls/demo \
     --device cuda \
