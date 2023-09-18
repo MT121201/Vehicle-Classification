@@ -45,7 +45,7 @@ def parse_args():
     parser.add_argument('--img', help='image root directory')
     parser.add_argument('--out', default='./cache/predict/', help='output directory')
     parser.add_argument('--thresh', default=0.01, type=float, help='threshold predict score')
-    parser.add_argument('--CVAT', action='store_true', help='If choose, prepare pseudo label for CVAT')
+    parser.add_argument('--CVAT', default=None, help='If choose, prepare pseudo label for CVAT')
     args = parser.parse_args()
     return args
 
@@ -64,7 +64,7 @@ def main():
     inferencer = ImageClassificationInferencer(config_file, checkpoint_file, device)
     inference(image_folder, save, inferencer, args.thresh)
 
-    if args.CVAT:
+    if args.CVAT is not None:
         print('Detect flag CVAT, now prepare pseudo label for CVAT')
         correct_ann(save, args.CVAT)
         print('Done prepare pseudo label for CVAT, check in ./cache/class_CVAT.txt but please check the image path because CVAT maybe using different path')
