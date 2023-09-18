@@ -1,4 +1,3 @@
-
 mmdet_model = dict(
     config='configs/mmdet/swin/mask-rcnn_swin-t-p4-w7_fpn_1x_coco.py',
     checkpoint='https://download.openmmlab.com/mmdetection/v2.0/swin/mask_rcnn_swin-t-p4-w7_fpn_1x_coco/mask_rcnn_swin-t-p4-w7_fpn_1x_coco_20210902_120937-9d6b7cfa.pth'
